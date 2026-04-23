@@ -1,0 +1,4 @@
+name: youtube_agent
+agents:
+  - name: root_agent
+    entrypoint: adk_agent.agent:root_agent

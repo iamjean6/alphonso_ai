@@ -1,0 +1,81 @@
+2026-04-11 16:55:11,956 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 16:56:41,497 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 16:56:41,499 - adk_agent.agent - INFO - Zlatan Runner initialized and ready for deployment.
+2026-04-11 16:56:41,515 - adk_agent.agent - ERROR - Error during GCS ingestion in Agent 0 callback: 'CallbackContext' object has no attribute 'app_name'
+2026-04-11 17:02:20,234 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 17:02:20,236 - adk_agent.agent - INFO - Zlatan Runner initialized and ready for deployment.
+2026-04-11 17:02:23,073 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 17:09:38,698 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 17:09:38,703 - adk_agent.agent - INFO - Zlatan Runner initialized and ready for deployment.
+2026-04-11 17:09:42,227 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 17:10:01,938 - adk_agent.agent - INFO - Successfully saved session c0733631-02a9-40a1-9f34-a021c4d6ffb3 to Memory Bank.
+2026-04-11 17:19:16,474 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 17:22:03,666 - adk_agent.agent - INFO - Successfully saved session c0733631-02a9-40a1-9f34-a021c4d6ffb3 to Memory Bank.
+2026-04-11 17:22:54,725 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 18:40:42,667 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 18:40:42,682 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-11 18:40:47,348 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 18:41:01,774 - adk_agent.agent - INFO - Skipping memory save for greeting-only session.
+2026-04-11 18:42:07,948 - adk_agent.agent - INFO - Sport: And
+2026-04-11 18:42:08,962 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 18:45:36,418 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 62e409ff-fafd-4b51-8e66-bff3edb23468)
+2026-04-11 18:46:16,036 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 18:48:08,700 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 62e409ff-fafd-4b51-8e66-bff3edb23468)
+2026-04-11 18:56:06,512 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 18:56:06,517 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-11 18:56:10,666 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 19:02:33,834 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 19:02:33,837 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-11 19:02:39,074 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 19:02:50,999 - adk_agent.agent - INFO - Skipping memory save for greeting-only session.
+2026-04-11 19:03:43,868 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0.
+2026-04-11 19:05:32,119 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 1aca4813-9197-4cf8-98ee-0e8533c42c5a)
+2026-04-11 19:16:09,534 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-11 19:16:09,539 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-11 19:16:14,912 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping LLM call.
+2026-04-11 19:17:03,928 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 28d64f70-fd9b-4909-aea5-2824ce93bb78)
+2026-04-12 03:08:34,414 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 03:08:34,426 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 03:08:46,474 - adk_agent.agent - INFO - Skipping memory save for greeting-only session.
+2026-04-12 03:09:23,259 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 03:09:55,886 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 8e6c6089-30c1-483b-b353-ca5069d724b3)
+2026-04-12 03:18:24,160 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 03:18:24,162 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 03:18:28,550 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 03:19:45,603 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 84557cb8-ebc6-4d96-81de-7833a7b82f4a)
+2026-04-12 03:24:05,150 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 03:24:05,152 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 03:24:09,349 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 03:25:17,145 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: fab716a9-56e1-4f55-b9dc-1373def4ae67)
+2026-04-12 03:26:18,558 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 03:28:10,568 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: fab716a9-56e1-4f55-b9dc-1373def4ae67)
+2026-04-12 15:07:37,361 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:07:37,387 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:07:44,051 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 15:14:07,053 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:14:07,056 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:14:23,024 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 15:34:22,250 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:34:22,252 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:34:25,046 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 15:38:33,222 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: 40bea07d-f3da-4776-83c8-eab193f2a51e)
+2026-04-12 15:44:33,456 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:44:33,459 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:44:37,564 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 15:49:25,335 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: a92c8df9-eeb7-4b7e-9e59-e5d7a8e774a8)
+2026-04-12 15:56:37,418 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:56:37,423 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:56:39,898 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 15:58:00,038 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 15:58:00,041 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 15:58:04,228 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 16:06:20,427 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-04-12 16:06:20,478 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 16:06:25,418 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 16:08:14,802 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: fce90670-702b-4f82-b9cf-3273f856deeb)
+2026-04-12 16:11:28,213 - adk_agent.agent - INFO - No artifacts found in GCS for Agent 0. Skipping to Researcher.
+2026-04-12 16:13:33,765 - adk_agent.agent - INFO - Successfully saved athlete facts for Unknown (Session: fce90670-702b-4f82-b9cf-3273f856deeb)
+2026-04-12 18:24:18,424 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: gs://productionbucket101
+2026-04-12 18:24:18,448 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
+2026-04-12 18:38:43,561 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: gs://productionbucket101
+2026-04-12 18:38:43,586 - adk_agent.agent - INFO - Alphonso Runner initialized and ready for deployment.
