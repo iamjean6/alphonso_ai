@@ -2,6 +2,9 @@ import axios from 'axios';
 import FormData from 'form-data';
 import User from '../model/user.js';
 import Session from '../model/session.js';
+import Message from '../model/message.js';
+import { parseAlphonsoResponse } from '../utils/parser.js';
+import { getSignedUrl } from '../utils/gcs.js';
 
 // 1. CHAT RELAY (The Streamer)
 export const chatWithAi = async (req, res) => {
@@ -36,6 +39,14 @@ export const chatWithAi = async (req, res) => {
             { upsert: true }
         );
 
+        // PERSIST USER MESSAGE
+        await Message.create({
+            sessionId: finalSessionId,
+            uid: userIdForAi,
+            role: 'user',
+            content: message
+        });
+
         // Call Python FastAPI server with streaming enabled
         const response = await axios({
             method: 'post',
@@ -47,20 +58,86 @@ export const chatWithAi = async (req, res) => {
             data: {
                 message,
                 user_id: userIdForAi,
-                session_id: finalSessionId, // Send the safe ID to Python too
+                session_id: finalSessionId, 
                 active_sport,
-                athlete_bio: athleteBio // <-- The "Secret Sauce"
+                athlete_bio: athleteBio,
+                tier: req.user?.tier || 'ELITE' // <-- The Tier Key
             },
             responseType: 'stream'
-        });
+
+            
+        });console.log(response.data)
 
         // Set headers for SSE (Server-Sent Events)
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
 
-        // Pipe the stream directly from Python to our Frontend
-        response.data.pipe(res);
+        // BACKGROUND: Buffer and Persist for DB
+        let fullResponse = "";
+        let sessionImages = []; // Array of {url, filename}
+        
+        response.data.on('data', async (chunk) => {
+            const lines = chunk.toString().split('\n');
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                
+                // Pass the raw line to frontend first so text flows smoothly
+                res.write(`${line}\n\n`);
+
+                if (line.startsWith('data: ')) {
+                    try {
+                        const json = JSON.parse(line.slice(6));
+                        if (json.type === 'content' && json.chunk) {
+                            fullResponse += json.chunk;
+                            
+                            // Detect [GRAPH_FILE: plot_N.png]
+                            const graphMatch = json.chunk.match(/\[GRAPH_FILE:\s*(plot_\d+\.png)\]/);
+                            if (graphMatch) {
+                                const filename = graphMatch[1];
+                                console.log(`[Elite Lab] Detected Graph: ${filename}`);
+                                
+                                // NON-BLOCKING: Fire and forget the signing so it doesn't choke the text stream
+                                (async () => {
+                                    try {
+                                        const signedUrl = await getSignedUrl(finalSessionId, filename);
+                                        const imageEvent = {
+                                            type: 'image',
+                                            url: signedUrl,
+                                            filename: filename
+                                        };
+                                        res.write(`data: ${JSON.stringify(imageEvent)}\n\n`);
+                                        sessionImages.push(imageEvent);
+                                    } catch (err) {
+                                        console.error(`Async Signing Error for ${filename}:`, err);
+                                    }
+                                })();
+                            }
+                        }
+                    } catch (e) {
+                        // Skip malformed chunks
+                    }
+                }
+            }
+        });
+
+        response.data.on('end', async () => {
+            try {
+                const { cleanedText, videos } = parseAlphonsoResponse(fullResponse);
+                await Message.create({
+                    sessionId: finalSessionId,
+                    uid: userIdForAi,
+                    role: 'assistant',
+                    content: cleanedText || (sessionImages.length > 0 ? "Visual Data Deconstruction" : (videos.length > 0 ? "Video Scouting Report" : "")),
+                    rawContent: fullResponse,
+                    videos,
+                    images: sessionImages
+                });
+                console.log(`[DB] Persisted AI response for session ${finalSessionId} with ${sessionImages.length} images.`);
+            } catch (dbErr) {
+                console.error("[DB] Failed to persist AI response:", dbErr.message);
+            }
+        });
 
     } catch (error) {
         console.error("Chat Relay Error:", error.message);
@@ -72,37 +149,34 @@ export const chatWithAi = async (req, res) => {
     }
 };
 
-// 2. STATS UPLOAD RELAY (The Artifact Hub)
-export const uploadStats = async (req, res) => {
+// 2. GET UPLOAD URL (The Gateway to Direct GCS)
+// BTS: Instead of handling the file, we get a 'Master Key' for the athlete.
+export const getUploadUrl = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ message: "No file uploaded." });
-        }
-
-        const { session_id } = req.body;
+        const { filename, content_type, session_id } = req.body;
         const { uid } = req.user;
 
-        // Construct a new form to send to Python
-        const formData = new FormData();
-        formData.append('file_upload', req.file.buffer, {
-            filename: req.file.originalname,
-            contentType: req.file.mimetype,
-        });
-        formData.append('user_id', uid);
-        formData.append('session_id', session_id);
+        if (!filename) {
+            return res.status(400).json({ message: "Filename is required." });
+        }
 
-        const response = await axios.post(`${process.env.AI_SERVER_URL}/stats_upload`, formData, {
+        // BTS: We call Python to generate the GCS Signed URL.
+        // We use Headers to pass session metadata (Secure & Hidden from URL)
+        const response = await axios.post(`${process.env.AI_SERVER_URL}/get_upload_url`, {}, {
+            params: { filename, content_type },
             headers: {
-                ...formData.getHeaders(),
-                'X-Internal-Token': process.env.INTERNAL_API_KEY
+                'X-Internal-Token': process.env.INTERNAL_API_KEY,
+                'X-User-ID': uid,
+                'X-Session-ID': session_id
             }
         });
 
+        // Step 2: Send the 'Master Key' back to the Frontend
         res.status(200).json(response.data);
-        console.log("Successfully uploaded file")
+        console.log(`[Elite Lab] Signed URL issued for: ${filename}`);
 
     } catch (error) {
-        console.error("Upload Relay Error:", error.message);
-        res.status(500).json({ message: "Failed to sync artifact with AI Service." });
+        console.error("Signed URL Relay Error:", error.message);
+        res.status(500).json({ message: "Failed to generate upload gateway." });
     }
 };

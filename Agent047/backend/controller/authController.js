@@ -39,7 +39,7 @@ export const register = async (req, res) => {
         res.status(201).json({
             message: "Athlete registered successfully!",
             token,
-            user: { email: newUser.email, username: newUser.username }
+            user: { email: newUser.email, username: newUser.username, tier: newUser.tier }
         });
 
     } catch (error) {
@@ -76,7 +76,7 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             token,
-            user: { email: user.email, username: user.username, isPro: user.isPro }
+            user: { email: user.email, username: user.username, tier: user.tier }
         });
 
     } catch (error) {
@@ -99,7 +99,7 @@ export const user = async (req, res) => {
             user: {
                 email: authenticatedUser.email,
                 username: authenticatedUser.username,
-                isPro: authenticatedUser.isPro,
+                tier: authenticatedUser.tier,
                 height: authenticatedUser.height,
                 weight: authenticatedUser.weight,
                 primarySports: authenticatedUser.primarySports

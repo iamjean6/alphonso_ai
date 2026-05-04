@@ -19,7 +19,7 @@ const checkUsage = async (req, res, next) => {
         }
 
         // If user is Free, check the limit (2 tries)
-        if (user.usageCount >= 20) {
+        if (user.usageCount >= 100) {
             return res.status(402).json({
                 message: "Trial exhausted. Please subscribe to continue using Alphonso Expert coaching.",
                 tries: user.usageCount

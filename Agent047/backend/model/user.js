@@ -13,6 +13,12 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         trim: true
     },
+    username: {
+        type: String,
+        unique: true,
+        trim: true,
+        sparse: true // Allows uniqueness while ignoring nulls for old accounts
+    },
     password: {
         type: String,
         required: true
@@ -24,6 +30,11 @@ const userSchema = new mongoose.Schema({
     isPro: {
         type: Boolean,
         default: false
+    },
+    tier: {
+        type: String,
+        enum: ['rookie', 'prospect', 'elite', 'legend'],
+        default: 'elite'
     },
     proUntil: {
         type: Date

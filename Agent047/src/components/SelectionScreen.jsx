@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 
 const sports = [
-  { id: 'football', name: 'Football', image: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&h=600&fit=crop' },
-  { id: 'basketball', name: 'Basketball', image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=600&fit=crop' },
-  { id: 'running', name: 'Running', image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=400&h=600&fit=crop' },
-  { id: 'gym', name: 'Weightlifting', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=600&fit=crop' },
-  { id: 'tennis', name: 'Tennis', image: 'https://images.unsplash.com/photo-1595435064215-46d128ec6012?w=400&h=600&fit=crop' },
-  { id: 'cycling', name: 'Cycling', image: 'https://images.unsplash.com/photo-1484156818044-c040038b0719?w=400&h=600&fit=crop' },
+  { id: 'football', name: 'Football', image: '/img/football.jpg' },
+  { id: 'basketball', name: 'Basketball', image: '/img/basketball.jpg' },
+  { id: 'running', name: 'Running', image: '/img/athletics.jpg' },
+  { id: 'gym', name: 'Weightlifting', image: '/img/weightlifting.jpg' },
+  { id: 'tennis', name: 'Tennis', image: '/img/tennis.jpg' },
+  { id: 'boxing', name: 'Boxing', image: '/img/boxing.jpg' },
+  { id: 'rugby', name: 'Rugby', image: '/img/Rugby.jpg' },
+  { id: 'swimming', name: 'Swimming', image: '/img/swimming.jpg' },
+  { id: 'volleyball', name: 'Volleyball', image: '/img/volleyball.jpg' },
+  { id: 'badminton', name: 'Badminton', image: '/img/badminton.jpg' },
+  { id: 'handball', name: 'Handball', image: '/img/handball.jpg' },
+  { id: 'hockey', name: 'Hockey', image: '/img/hockey.jpg' },
 ];
 
 const SelectionScreen = ({ onNext, onLoginRequested }) => {

@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import time
 
 # Robust .env loading - MUST happen before any local imports that depend on config
 env_path = os.path.join(os.path.dirname(__file__), ".env")
@@ -10,9 +11,11 @@ else:
 
 from google.adk.apps import App
 from google.adk.agents.sequential_agent import SequentialAgent
-from .subagents import agent0, agent1, agent2, agent3
+from .subagents import agent0, agent1, agent2, agent3, analytics_agent, media_scout
+from .subagents.video_agent import unified_video_interceptor
 from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin
 from google.adk.agents.callback_context import CallbackContext
+from google.adk.sessions import InMemorySessionService
 from google.adk.models import LlmRequest, LlmResponse
 from google.adk.artifacts import GcsArtifactService
 from google.genai import types
@@ -20,18 +23,24 @@ from typing import Optional
 from google.adk.memory import VertexAiMemoryBankService
 from google.adk.events.event import Event
 import vertexai
-
 import re
+
 import logging
 import sys
 
 # Logging setup
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler(sys.stdout)
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# Console Handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(console_handler)
+
+# File Handler (Fix for stale logs)
+log_file_path = os.path.join(os.path.dirname(__file__), "..", "logger.log")
+file_handler = logging.FileHandler(log_file_path)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(file_handler)
+
 logger.setLevel(logging.INFO)
 
 
@@ -88,171 +97,316 @@ def is_greeting(text: str) -> bool:
         
     return False
 
-async def before_model_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
-    """
-    Refined callback to inject context and handle greeting skips.
-    """
-    # 1. Redundant safety: Check if this turns out to be a greeting even if the global flag missed it
+async def before_agent_callback(callback_context: CallbackContext) -> Optional[LlmResponse]:
+    """Master Orchestrator: Handles Tier Gating, Memories, and Data Ingestion."""
     user_input = callback_context.user_content.parts[0].text if callback_context.user_content else ""
-    if callback_context.state.get("is_greeting_only") or is_greeting(user_input):
-        # Return a dummy response to bypass the LLM for researchers
-        return LlmResponse(
-            content=types.Content(parts=[types.Part(text="[System: Research skipped as this is a greeting.]")]),
-            custom_metadata={"author": callback_context.agent_name}
-        )
-        logger.info("SUBAGENTS 1 & 2 execution skipped ")
+    
+    # 1. Identity Discovery (Resilient)
+    current_agent = "unknown"
+    if hasattr(callback_context, 'agent_name'):
+        current_agent = callback_context.agent_name
+    elif hasattr(callback_context, 'agent') and callback_context.agent:
+        current_agent = callback_context.agent.name
 
-    # 2. Agent 0 Specific: Skip if no artifacts found
-    if callback_context.agent_name == "agent0" and artifact_service:
-        filenames = await artifact_service.list_artifact_keys(
-            app_name=callback_context.session.app_name,
-            user_id=callback_context.session.user_id,
-            session_id=callback_context.session.id
-        )
-        if not filenames:
-            logger.info("No artifacts found in GCS for Agent 0. Skipping to Researcher.")
-            return LlmResponse(
-                content=types.Content(parts=[types.Part(text="USER_STATS: NONE")]),
-                custom_metadata={"author": "agent0_bypass"}
+    # ⏱️ Start Stopwatch
+    callback_context.state[f"start_time_{current_agent}"] = time.time()
+    user_id = callback_context.session.user_id
+    logger.info(f">>> [STOPWATCH] {current_agent} Turn Start | User: {user_id} <<<")
+
+    # 🛡️ STATE SEEDING: Ensure context variables always exist to prevent KeyErrors
+    if "user_stats" not in callback_context.session.state:
+        callback_context.session.state["user_stats"] = ""
+    if "media_insights" not in callback_context.session.state:
+        callback_context.session.state["media_insights"] = ""
+    if "analytics_results" not in callback_context.session.state:
+        callback_context.session.state["analytics_results"] = ""
+
+    # 2. Artifact-Dependent Agents: Skip if no artifacts found (Agent 0 & Analytics only)
+    if current_agent in ["agent0", "analytics_agent"] and artifact_service:
+        try:
+            filenames = await artifact_service.list_artifact_keys(
+                app_name=callback_context.session.app_name,
+                user_id=callback_context.session.user_id,
+                session_id=callback_context.session.id
             )
+            if not filenames:
+                logger.info(f"No artifacts found in GCS for {current_agent}. Skipping to Researcher.")
+                return LlmResponse(
+                    content=types.Content(parts=[types.Part(text="USER_STATS: NONE")]),
+                    custom_metadata={"author": f"{current_agent}_bypass"}
+                )
+        except Exception as e:
+            logger.error(f"Error checking artifacts in Gatekeeper: {e}")
 
-    # 3. Extract context from the shared session state
-    user_name = callback_context.state.get("user_name")
-    active_sport = callback_context.state.get("active_sport", "General Sports")
-    athlete_bio = callback_context.state.get("athlete_bio")
-    
-    # 4. Bind the name to the state; we avoid changing session.user_id mid-flight to prevent session service lookups from failing.
-    if user_name and user_name != "Unknown":
-        callback_context.state["user_id_override"] = user_name
-    
-    # 4. Build the context injection string
-    identity_context = f"User Name: {user_name}. " if user_name else "User Identity: Anonymous Athlete. "
-    if athlete_bio:
-        identity_context += f"| {athlete_bio} "
+    # 3. Tier Discovery (Dual-Signal)
+    user_tier = callback_context.state.get("athlete_tier", "ROOKIE").upper()
+    tier_match = re.search(r"\[SYSTEM_AUTH: TIER=(.*?)\]", user_input)
+    if tier_match:
+        user_tier = tier_match.group(1).upper()
+        clean_input = user_input.split("]", 1)[-1].strip()[:50]
+        logger.info(f"--- [GATEKEEPER] Auth Detected: {current_agent} | Tier: {user_tier} | Msg: {clean_input}... ---")
+    else:
+        logger.info(f"--- [GATEKEEPER] State Check: {current_agent} | Tier: {user_tier} ---")
+
+    # 🛡️ VIDEO DETECTION: Find YouTube link and handle state clearing
+    youtube_regex = r"(?:https?://)?(?:www\.)?(?:youtube\.com|youtu\.be)/(?:watch\?v=)?([^/\s?]+)"
+    yt_match = re.search(youtube_regex, callback_context.user_content.parts[0].text if callback_context.user_content else "")
+    if yt_match:
+        url = yt_match.group(0).strip()
+        callback_context.session.state["active_video_uri"] = url
+    else:
+        # Clear the 'sticky' state so we don't analyze the previous turn's video
+        if "active_video_uri" in callback_context.session.state:
+            callback_context.session.state["active_video_uri"] = None
+            logger.info("Visual Sentry: No new link detected. Cleared active_video_uri.")
+
+    # 🛑 TIER-GATE: ROOKIE (Blocks all Lab agents)
+    if user_tier == "ROOKIE" and current_agent in ["agent0", "analytics_agent", "media_scout"]:
+        logger.info(f"Gatekeeper Enforcement: ROOKIE blocked from {current_agent}")
+        return LlmResponse(content=types.Content(parts=[types.Part(text="[TIER_LIMIT] Access denied. Rookies are not authorized for the Analytical Lab.")]))
+
+    # 🛑 TIER-GATE: PROSPECT (Limit to Text only)
+    if user_tier == "PROSPECT" and current_agent in ["analytics_agent", "media_scout"]:
+        logger.info(f"Gatekeeper Enforcement: PROSPECT blocked from Deep Lab.")
+        return LlmResponse(content=types.Content(parts=[types.Part(text="[TIER_LIMIT] Deep Analytical Scout is locked for Prospect tier. Upgrade to Elite for visual analysis.")]))
+
+    # 🟢 ELITE: Exclusive Skip (Bypass Summary for Deep Analytics)
+    if current_agent == "agent0" and user_tier in ["ELITE", "LEGEND"]:
+        logger.info(f"Gatekeeper Enforcement: ELITE bypass. Moving straight to Analytical Scout.")
+        return LlmResponse(content=types.Content(parts=[types.Part(text="USER_STATS: UPGRADED_TO_ANALYTICS")]))
+
+    # 🛡️ VIDEO GATEKEEPER: Bypass Media Scout if no video content or YouTube links
+    if current_agent == "media_scout":
+        has_youtube = callback_context.session.state.get("active_video_uri")
         
-    sport_context = f"Active Sport Context: {active_sport}."
+        # Check GCS for video artifacts (Handling the /0 Signed URL schema)
+        try:
+            artifact_keys = await artifact_service.list_artifact_keys(
+                app_name=callback_context.session.app_name,
+                user_id=callback_context.session.user_id,
+                session_id=callback_context.session.id
+            )
+            # 🕵️ Forensic Audit: Log exactly what the Gatekeeper sees
+            logger.info(f"Gatekeeper Ingestion Scan: {len(artifact_keys)} keys found.")
+            for k in artifact_keys:
+                logger.info(f"  - Key: '{k}'")
+
+            # 🛡️ Visual Audit: Check if any key contains a video extension (even with /0 suffix)
+            video_extensions = ('.mp4', '.mov', '.avi', '.webm')
+            has_video_artifact = any(
+                any(ext in k.lower() for ext in video_extensions) 
+                for k in artifact_keys
+            )
+        except Exception as e:
+            logger.error(f"🚨 Gatekeeper Audit Failure: {e}")
+            has_video_artifact = False
+        
+
+    logger.info(f"Gatekeeper Enforcement: Permission Granted for {current_agent} ({user_tier}).")
+    return None
+
+async def before_model_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
+    """Master Context Injector: Handles Name, Bio, Memories, and Data Ingestion."""
+    user_input = callback_context.user_content.parts[0].text if callback_context.user_content else ""
+    current_agent = callback_context.agent_name if hasattr(callback_context, 'agent_name') else "unknown"
     
-    # 5. Inject into the system instruction
-    memories = callback_context.state.get("past_memories")
-    memory_injection = f"\n[PAST ATHLETE MEMORIES]\n{memories}\n" if memories else ""
+    user_tier = callback_context.state.get("athlete_tier", "ROOKIE").upper()
+    tier_match = re.search(r"\[SYSTEM_AUTH: TIER=(.*?)\]", user_input)
+    if tier_match: user_tier = tier_match.group(1).upper()
+
+    # 1. Skip if Greeting
+    if is_greeting(user_input):
+         return LlmResponse(content=types.Content(parts=[types.Part(text="[System: Greeting detected, research skipped.]")]))
+
+    # 2. Memory Retrieval (Legacy Lookup)
+    memories = ""
+    try:
+        search_query = re.sub(r"\[SYSTEM_AUTH: TIER=.*?\]", "", user_input).strip()
+        logger.info(f"Memory: Searching for legacy facts: '{search_query[:50]}...'")
+        res = await memory_service.search_memory(
+            app_name=MEMORY_SCOPE_APP,
+            user_id=callback_context.session.user_id,
+            query=search_query
+        )
+        if res.memories:
+            memories = "\n".join([f"- {m.content.parts[0].text}" for m in res.memories])
+            callback_context.state["past_memories"] = memories
+            logger.info(f"Memory: Found {len(res.memories)} legacy facts.")
+        else:
+            logger.info("Memory: No relevant legacy facts found for this turn.")
+    except Exception as e:
+        logger.error(f"Memory search failure: {e}")
+
+    # 3. Context Injection
+    user_name = callback_context.state.get("user_name", "Anonymous Athlete")
+    active_sport = callback_context.state.get("active_sport", "General Sports")
+    athlete_bio = callback_context.state.get("athlete_bio", "")
+    if not memories:
+        memories = callback_context.state.get("past_memories", "")
+    
+    identity_context = f"Athlete: {user_name} | Bio: {athlete_bio}"
+    sport_context = f"Active Sport: {active_sport}"
+    memory_injection = f"\n[PAST MEMORIES]\n{memories}\n" if memories else ""
     
     injection = f"\n\n[CONTEXT INJECTION]\n{identity_context}\n{sport_context}\n{memory_injection}[END CONTEXT]"
     llm_request.append_instructions([injection])
-    
-    return None
 
-async def before_agent_callback(callback_context: CallbackContext) -> Optional[types.Content]:
-    """Global callback to detect greetings and fetch past athlete memories with Name Bias."""
-    user_input = callback_context.user_content.parts[0].text if callback_context.user_content else ""
-    
-    if "user_name" not in callback_context.state:
-        callback_context.state["user_name"] = "Unknown"
-    if "active_sport" not in callback_context.state:
-        callback_context.state["active_sport"] = "Unknown"
-    if "is_greeting_only" not in callback_context.state:
-        callback_context.state["is_greeting_only"] = False
-    
-    # Capture the current user query for the manual save at the end
-    callback_context.state["current_user_query"] = user_input
-    
-    # Safety initializations for sub-agent data passing
-    if "user_stats" not in callback_context.state:
-        callback_context.state["user_stats"] = "NONE"
-    if "google_research" not in callback_context.state:
-        callback_context.state["google_research"] = "No technical research found."
-    if "youtube_research" not in callback_context.state:
-        callback_context.state["youtube_research"] = "No visual demonstrations available."
-    if "past_memories" not in callback_context.state:
-        callback_context.state["past_memories"] = "No past athlete data found."
+    # 3b. Inject Media Insights if available (For Final Coach)
+    if current_agent == "agent3":
+        media_insights = callback_context.session.state.get("media_insights")
+        if media_insights:
+            llm_request.append_instructions([f"[MEDIA_INSIGHTS]: {media_insights}"])
 
-    # 2. Memory Retrieval (Strict ID enforcement)
-    if user_input and not callback_context.state.get("is_greeting_only"):
-        search_query = user_input
-        target_user_id = callback_context.session.user_id
-        
+    # 4. GCS Ingestion logic (Selective)
+    if current_agent in ["agent0", "analytics_agent", "media_scout"] and artifact_service:
         try:
-            logger.info(f"Global: Searching athlete memory bank for: '{search_query}' (App: {MEMORY_SCOPE_APP}, User: {target_user_id})")
-            
-            res = await memory_service.search_memory(
-                app_name=MEMORY_SCOPE_APP,
-                user_id=target_user_id,
-                query=search_query
+            filenames = await artifact_service.list_artifact_keys(
+                app_name=callback_context.session.app_name,
+                user_id=callback_context.session.user_id,
+                session_id=callback_context.session.id
             )
-            if res.memories:
-                logger.info(f"Global: [!] Found {len(res.memories)} relevant past athlete facts for {target_user_id}.")
-                # Store them in state so all sub-agents (Researchers + Alphonso) can use them
-                memories_text = "\n".join([f"- {m.content.parts[0].text}" for m in res.memories])
-                callback_context.state["past_memories"] = memories_text
-            else:
-                logger.info(f"Global: No past memories found for user {target_user_id}.")
+            for filename in filenames:
+                # 🛡️ Visual Audit: Correctly identify extensions even with /0 suffix
+                is_image = any(ext in filename.lower() for ext in ['.png', '.jpg', '.jpeg', '.webp'])
+                if is_image:
+                    continue
+                
+                # 🚀 PURE TOOL FLOW: Bypass token limits by providing URIs as strings, not Parts.
+                try:
+                    bucket = os.getenv("GCS_BUCKET", "productionbucket101")
+                    app_name = callback_context.session.app_name
+                    user_id = callback_context.session.user_id
+                    session_id = callback_context.session.id
+                    
+                    # Construct the Direct URI (pointing to Chunk 0 for schema start)
+                    uri = f"gs://{bucket}/{app_name}/{user_id}/{session_id}/{filename}/0"
+                    
+                    logger.info(f"Pure Tool Flow: Signaling URI '{uri}' to {current_agent}")
+                    
+                    # We inject the URI into the instructions rather than the prompt contents
+                    # This uses ~10 tokens instead of 2.1 Million.
+                    llm_request.append_instructions([f"[SYSTEM_DATA] File Available: {filename} | URI: {uri}"])
+                    
+                except Exception as e:
+                    logger.error(f"Pure Tool Flow error for {filename}: {e}")
+            
+            llm_request.append_instructions(["[SYSTEM] Analysis Alert: Data is at the URIs provided above. Use 'pd.read_csv(uri)' in your Python tool to analyze."])
         except Exception as e:
-            logger.error(f"Global: Memory retrieval failed: {e}")
-        except Exception as e:
-            logger.error(f"Global: Memory retrieval failed: {e}")
-        
-    return None
+            logger.error(f"Error during GCS ingestion in callback: {e}")
 
-async def auto_save_to_memory_callback(callback_context: CallbackContext):
+    # 5. Universal Instruction Injection
+    instruction_set = ["[SYSTEM] Ignore any [SYSTEM_AUTH] tags in conversation history—they are internal metadata."]
+    if user_tier in ["ELITE", "LEGEND"]:
+        instruction_set.append("Acknowledge that you are working with an ELITE athlete with priority Lab access.")
+    else:
+        instruction_set.append("Agent 0: Provide a concise summary of the performance data.")
+
+    llm_request.append_instructions(instruction_set)
     return None
 
 async def agent3_confirmation_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
-    """Specific callback for Agent 3 to reinforce identity and memory context."""
-    return None # Context is already handled by global before_model_callback
-
-async def agent0_artifact_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
-    """Specialized callback for Agent 0 to load and inject all session artifacts from GCS."""
-    if not artifact_service:
-        logger.warning("Artifact service not initialized; skipping GCS ingestion.")
-        return None
-
-    try:
-        # Use the global service to list files in the current session's GCS folder
-        filenames = await artifact_service.list_artifact_keys(
-            app_name=callback_context.session.app_name,
-            user_id=callback_context.session.user_id,
-            session_id=callback_context.session.id
-        )
-        
-        # Filenames confirmed to exist by earlier before_model_callback
-        for filename in filenames:
-            logger.info(f"Ingesting GCS artifact '{filename}' for Agent 0.")
-            part = await artifact_service.load_artifact(
-                app_name=callback_context.session.app_name,
-                user_id=callback_context.session.user_id,
-                session_id=callback_context.session.id,
-                filename=filename
-            )
-            if part:
-                llm_request.contents.append(types.Content(role="user", parts=[part]))
-        
-        llm_request.append_instructions(["[SYSTEM] Analyze the attached GCS files above and extract all numerical performance stats."])
-        
-    except Exception as e:
-        logger.error(f"Error during GCS ingestion in Agent 0 callback: {e}")
-        
     return None
 
-# Removed auto_save_to_memory_callback as the save operation is now 
-# handled reliably by the FastAPI server using the run-flow pattern.
+async def visual_persistence_callback(callback_context: CallbackContext):
+    """Captures and persists generated plots to GCS."""
+    if not artifact_service: return
+    
+    if hasattr(callback_context, 'llm_response') and callback_context.llm_response:
+        for i, part in enumerate(callback_context.llm_response.candidates[0].content.parts):
+            if part.inline_data:
+                try:
+                    filename = f"plot_{i+1}.png"
+                    await artifact_service.save_artifact(
+                        app_name=callback_context.session.app_name,
+                        user_id=callback_context.session.user_id,
+                        session_id=callback_context.session.id,
+                        filename=filename,
+                        content=part.inline_data.data,
+                        mime_type=part.inline_data.mime_type
+                    )
+                    logger.info(f"Saved generated plot: {filename}")
+                except Exception as e:
+                    logger.error(f"Persistence error: {e}")
+        
+async def after_subagent_callback(callback_context: CallbackContext):
+    """Calculates and logs the execution duration and handles Elite variable bridging."""
+    current_agent = callback_context.agent_name if hasattr(callback_context, 'agent_name') else "unknown"
+    start_time = callback_context.state.get(f"start_time_{current_agent}")
+    
+    # 1. Timing Logic
+    if start_time:
+        duration = time.time() - start_time
+        logger.info(f"<<< [STOPWATCH] {current_agent} Turn Finish (Duration: {duration:.2f}s) >>>")
+    else:
+        logger.info(f"<<< [STOPWATCH] {current_agent} Turn Finish (Duration: unknown) >>>")
+
+    # 2. Elite Variable Bridge: Hand off results to the rest of the chain
+    if current_agent == "analytics_agent":
+        analytics_results = callback_context.state.get("analytics_results", "")
+        if analytics_results:
+            current_user_stats = callback_context.session.state.get("user_stats", "")
+            updated_stats = f"{current_user_stats}\n\n[DATA_LAB]: {analytics_results}".strip()
+            callback_context.session.state["user_stats"] = updated_stats
+
+    if current_agent == "media_scout":
+        # Capture from the state using the dynamic output_key
+        media_insights = callback_context.state.get("media_insights", "")
+        if media_insights:
+            callback_context.session.state["media_insights"] = media_insights
+            logger.info("Bridge: Synced raw media_insights to dedicated state.")
 
 # Inject callbacks
-agent0.before_model_callback = [before_model_callback, agent0_artifact_callback]
+agent0.before_agent_callback = before_agent_callback
+agent0.before_model_callback = before_model_callback
+agent0.after_agent_callback = after_subagent_callback
+
+analytics_agent.before_agent_callback = before_agent_callback
+analytics_agent.before_model_callback = before_model_callback
+analytics_agent.after_agent_callback = after_subagent_callback
+
+media_scout.before_agent_callback = before_agent_callback
+async def media_scout_combined_callback(callback_context, llm_request):
+    # 1. Run general context injection (Bio, Memories, Tiers)
+    await before_model_callback(callback_context, llm_request)
+    # 2. Run specialized video ingestion (Attaching YouTube/GCS Parts)
+    return await unified_video_interceptor(callback_context, llm_request)
+
+media_scout.before_model_callback = media_scout_combined_callback
+media_scout.after_agent_callback = after_subagent_callback
+
+agent1.before_agent_callback = before_agent_callback
 agent1.before_model_callback = before_model_callback
+agent1.after_agent_callback = after_subagent_callback
+
+agent2.before_agent_callback = before_agent_callback
 agent2.before_model_callback = before_model_callback
-agent3.before_model_callback = agent3_confirmation_callback # Special confirmation for Zlatan
+agent2.after_agent_callback = after_subagent_callback
 
-
+agent3.before_agent_callback = before_agent_callback
+agent3.before_model_callback = agent3_confirmation_callback 
+agent3.after_agent_callback = after_subagent_callback
 
 root_agent = SequentialAgent(
     name='alphonso',
     description='Alphonso: Your tough but compassionate performance mentor. He builds your legacy.',
-    sub_agents=[agent0, agent1, agent2, agent3],
+    sub_agents=[
+        agent0, 
+        analytics_agent, 
+        media_scout,
+        agent1, 
+        agent2, 
+        agent3
+    ],
     before_agent_callback=before_agent_callback,
-    after_agent_callback=auto_save_to_memory_callback
+    after_agent_callback=visual_persistence_callback
 )
+
+# Unified Session Memory
+session_service = InMemorySessionService()
+
 # Create the App container
 alphonso_app = App(
     name='alphonso_performance_mentor',
     root_agent=root_agent,
-    plugins=[ReflectAndRetryToolPlugin(max_retries=3)]
+    plugins=[]
 )

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SideBar from '../components/sidebar';
 import RightToolbar from '../components/RightToolbar';
-import YoutubeCard from '../components/youtubecard';
-import { chatWithAi } from '../../services/api';
+import YoutubeMediaRow from '../components/YoutubeMediaRow';
+import { chatWithAi, getSessionMessages } from '../../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,10 @@ import {
     Menu,
     ChevronLeft,
     ChevronRight,
-    Crown
+    Crown,
+    FileText,
+    Lock,
+    X
 } from 'lucide-react';
 
 const ChatUI = ({ userData, onLogout }) => {
@@ -25,47 +28,51 @@ const ChatUI = ({ userData, onLogout }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
-    const [sessionId, setSessionId] = useState(null); 
+    const [sessionId, setSessionId] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [pendingFile, setPendingFile] = useState(null); // Stage file for combined send
     const chatEndRef = useRef(null);
     const fileInputRef = useRef(null);
 
-    // PERSISTENCE RECOVERY: Load history on mount
+    // MASTER PERSISTENCE RECOVERY: Hydrate session and history on mount
     useEffect(() => {
-        if (userData?.username) {
-            const savedMessages = localStorage.getItem(`alphonso_msgs_${userData.username}`);
-            const savedSessionId = localStorage.getItem(`alphonso_sess_${userData.username}`);
-            
-            if (savedMessages) {
+        const hydrateChat = async () => {
+            // 1. Recover Session ID from local storage immediately
+            // We use a generic key first, then refine with username if available
+            const globalSessionId = localStorage.getItem(`alphonso_sess_active`);
+            const userSessionId = userData?.username ? localStorage.getItem(`alphonso_sess_${userData.username}`) : null;
+
+            const activeId = userSessionId || globalSessionId;
+
+            if (activeId) {
+                setSessionId(activeId);
                 try {
-                    const parsed = JSON.parse(savedMessages);
-                    // Ensure timestamps are date objects
-                    const hydrated = parsed.map(m => ({
-                        ...m,
-                        timestamp: new Date(m.timestamp)
-                    }));
-                    setMessages(hydrated);
-                } catch (e) {
-                    console.error("Failed to hydrate chat history:", e);
+                    const history = await getSessionMessages(activeId);
+                    if (history && history.length > 0) {
+                        const hydrated = history.map(m => ({
+                            ...m,
+                            timestamp: new Date(m.timestamp)
+                        }));
+                        setMessages(hydrated);
+                    }
+                } catch (err) {
+                    console.error("Failed to hydrate history on mount:", err);
                 }
             }
-            
-            if (savedSessionId) {
-                setSessionId(savedSessionId);
-            }
-        }
-    }, [userData]);
+        };
 
-    // PERSISTENCE SYNC: Save on every update
+        hydrateChat();
+    }, [userData?.username]); // Re-run if user profile loads late
+
+    // PERSISTENCE SYNC: Keep Session ID anchored
     useEffect(() => {
-        if (userData?.username && messages.length > 0) {
-            localStorage.setItem(`alphonso_msgs_${userData.username}`, JSON.stringify(messages));
-            if (sessionId) {
+        if (sessionId) {
+            localStorage.setItem(`alphonso_sess_active`, sessionId);
+            if (userData?.username) {
                 localStorage.setItem(`alphonso_sess_${userData.username}`, sessionId);
             }
         }
-    }, [messages, sessionId, userData]);
+    }, [sessionId, userData?.username]);
 
     // Auto-scroll to latest message
     const scrollToBottom = () => {
@@ -77,70 +84,81 @@ const ChatUI = ({ userData, onLogout }) => {
     }, [messages]);
 
     /**
-     * IRON-CLAD FUZZY SCRAPER
-     * Now bracket-less compatible. Identifies patterns based on labels and flow.
+     * LIVE DISCOVERY PARSER: Scrub text for the bubble while extracting videos for real-time UI.
      */
     const parseAlphonsoResponse = (text) => {
         if (!text) return { cleanedText: "", videos: [] };
 
-        const videos = [];
-        const seenIds = new Set();
         const lines = text.split('\n');
+        const videos = [];
+        let lastTitle = "";
+        let lastChannel = "";
+        let lastAudit = "";
 
         lines.forEach(line => {
-            // Find Video ID: The most reliable anchor
-            const idMatch = line.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([0-9A-Za-z_-]{11})/i);
+            // 1. CAPTURE TITLE/CHANNEL
+            // 1. CAPTURE TITLE/CHANNEL (Supports both bold and raw text)
+            const titleRowMatch = line.match(/(?:\d+\.\s+)?(?:\*\*)?([^*]+?)(?:\*\*)?\s+by\s+([^-:[\]]+?)(?:\s+Audit:|\s*\*Audit:\*|$)/i);
+            if (titleRowMatch) {
+                lastTitle = titleRowMatch[1].trim();
+                lastChannel = titleRowMatch[2].trim();
+            }
 
+            // 1.5 CAPTURE AUDIT (Handles both standalone and inline after "Audit:")
+            const auditMatch = line.match(/(?:\s+Audit:|\*Audit:\*)\s*(.+?)(?:\s+\[System Metadata\]|$)/i);
+            if (auditMatch) {
+                lastAudit = auditMatch[1].trim();
+            }
+
+            // 2. EXTRACT VIDEO DATA
+            const idMatch = line.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([0-9A-Za-z_-]{11})/i);
             if (idMatch) {
                 const videoId = idMatch[1];
 
-                if (seenIds.has(videoId)) return;
-                seenIds.add(videoId);
+                // Extract metadata if present
+                const viewsMatch = line.match(/Views:\s*(\d+)/i);
+                const yearMatch = line.match(/Year:\s*(\d{4})/i);
+                const thumbMatch = line.match(/Thumb:\s*(https:\/\/[^\s]+)/i);
 
-                // 1. FUZZY TITLE: Match anything after a digit (1.) but before 'by', '-', or 'Link:'
-                const titleMatch = line.match(/(?:\d+\.\s+)?(?:\[?([^\]\-]+)\]?)\s+(?:by|-|Link:)/i);
-                let title = titleMatch ? titleMatch[1].trim() : "Expert Training Drill";
-                if (title.startsWith('http')) title = "Expert Training Drill";
-
-                // 2. FUZZY CHANNEL: Match text following 'by'
-                const channelMatch = line.match(/by\s+([^-\[\(\s]+(?:\s+[^-\[\(\s]+)?)/i);
-                const channel = channelMatch ? channelMatch[1].trim() : "Elite Performance";
-
-                // 3. FUZZY VIEWS & YEAR
-                const viewsMatch = line.match(/Views:?\s*\[?([\d.,\sBMK]+)\]?/i);
-                const yearMatch = line.match(/Year:?\s*\[?(\d{4})\]?/i);
-
-                let viewsRaw = viewsMatch ? viewsMatch[1].replace(/[^\d.BMK]/gi, '') : "0";
-                let views = 0;
-                if (viewsRaw.toLowerCase().includes('m')) views = parseFloat(viewsRaw) * 1000000;
-                else if (viewsRaw.toLowerCase().includes('k')) views = parseFloat(viewsRaw) * 1000;
-                else views = parseInt(viewsRaw.replace(/,/g, '')) || 0;
-
+                const views = viewsMatch ? parseInt(viewsMatch[1]) : 0;
                 const year = yearMatch ? yearMatch[1] : "2024";
+                const thumbnail = thumbMatch ? thumbMatch[1].trim() : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
 
-                // 4. FUZZY THUMBNAIL
-                const thumbMatch = line.match(/(?:Thumb:|thumbnail|-[^h]*):?\s*\[?([-!]*\s*https?:\/\/[^\s\)]+\.(?:jpg|png|webp|jpeg)[^\s]*)/i);
-                const thumbnail = thumbMatch ? thumbMatch[1].replace(/^[-!]*\s*/, '').trim() : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-
-                videos.push({
-                    id: videoId,
-                    title,
-                    channel,
-                    url: `https://www.youtube.com/watch?v=${videoId}`,
-                    views,
-                    year,
-                    thumbnail,
-                });
+                // Prevent duplicates in the live array
+                if (!videos.some(v => v.id === videoId)) {
+                    videos.push({
+                        id: videoId,
+                        title: lastTitle || "Expert Training Drill",
+                        channel: lastChannel || "Elite Performance",
+                        url: `https://www.youtube.com/watch?v=${videoId}`,
+                        views,
+                        year,
+                        thumbnail,
+                        audit: lastAudit || "Study this footage for technical precision."
+                    });
+                }
             }
         });
 
+        // 3. CLEAN TEXT (Keep titles, remove metadata, audits, and graph tags for the bubble)
         let cleanedText = text;
         cleanedText = cleanedText.replace(/### (THE VISUAL MASTERCLASS|MEDIA & DRILLS|TRAINING RESOURCES)[:\s]*/gi, '');
+        cleanedText = cleanedText.replace(/\[PHASE \d+\] [^:\n]+/gi, ''); // Scrub Phase headers
+        cleanedText = cleanedText.replace(/\[GRAPH_FILE:\s*[^\]]+\]/gi, ''); // Scrub the graph tags
 
-        // Scrub metadata and raw links to keep the bubble clean
-        cleanedText = cleanedText.split('\n').filter(line => {
-            const isVideoMeta = /(youtube\.com|youtu\.be|Views:|Year:|Thumb:|Link:)/i.test(line);
-            return !isVideoMeta;
+        cleanedText = cleanedText.split('\n').map(line => {
+            // Remove "by [Channel Name] Audit: ..." from title lines in the bubble
+            const titleRowMatch = line.match(/^(\d+\.\s+)?(?:\*\*)?([^*]+?)(?:\*\*)?\s+by\s+([^-:[\]]+?)(?:\s+Audit:|\s*\*Audit:\*|$)/i);
+            if (titleRowMatch) {
+                const numbering = titleRowMatch[1] || "";
+                const title = titleRowMatch[2].trim();
+                return `${numbering}**${title}**`;
+            }
+            return line;
+        }).filter(line => {
+            // Remove System Metadata, Link, and Audit lines
+            const isScrubLine = /(youtube\.com|youtu\.be|\[System Metadata\]|\*Audit:\*|Views:|Year:|Thumb:|Link:)/i.test(line);
+            return !isScrubLine;
         }).join('\n');
 
         return {
@@ -164,6 +182,10 @@ const ChatUI = ({ userData, onLogout }) => {
         }
     }, [userData]);
 
+    // (Removed redundant loadHistory effect - now handled by Master Recovery)
+
+    const [uploadProgress, setUploadProgress] = useState(0);
+
     const handleSend = async (e) => {
         e.preventDefault();
         if ((!input.trim() && !pendingFile) || isStreaming) return;
@@ -176,38 +198,39 @@ const ChatUI = ({ userData, onLogout }) => {
         }
 
         // 1. Stage User Message (with attachment info if present)
-        const contentWithFile = pendingFile 
+        const contentWithFile = pendingFile
             ? `📎 [Attached: ${pendingFile.name}]\n${input}`
             : input;
 
         const userMsg = { role: 'user', content: contentWithFile, timestamp: new Date() };
         setMessages(prev => [...prev, userMsg]);
-        
+
         const currentInput = input;
         const currentFile = pendingFile;
-        
+
         setInput('');
         setPendingFile(null); // Clear stage
         setIsStreaming(true);
+        setUploadProgress(0); // Reset progress
 
         // Add a placeholder for the AI response
         setMessages(prev => [...prev, { role: 'assistant', content: '', timestamp: new Date(), isStreaming: true }]);
 
         try {
-            // 2. Perform File Upload if staged
+            // 2. Perform Direct File Upload if staged
             if (currentFile) {
                 const { uploadStatsFile } = await import('../../services/api');
-                await uploadStatsFile(currentFile, activeSessionId);
+                // BTS: We use the new High-Performance Direct Stream protocol
+                await uploadStatsFile(currentFile, activeSessionId, (progress) => {
+                    setUploadProgress(progress);
+                });
             }
 
             let fullResponse = "";
-            await chatWithAi(currentInput || `I've uploaded ${currentFile.name}. Analyze it.`, activeSessionId, (chunk) => {
+            const chatPromise = chatWithAi(currentInput || `I've uploaded ${currentFile.name}. Analyze it.`, activeSessionId, (chunk) => {
                 if (chunk.type === 'content') {
                     fullResponse += chunk.chunk;
-
-                    // Parse text and extract videos
                     const { cleanedText, videos } = parseAlphonsoResponse(fullResponse);
-
                     setMessages(prev => {
                         const newMsgs = [...prev];
                         const lastMsg = newMsgs[newMsgs.length - 1];
@@ -215,39 +238,39 @@ const ChatUI = ({ userData, onLogout }) => {
                         lastMsg.videos = videos.length > 0 ? videos : lastMsg.videos;
                         return newMsgs;
                     });
-                } else if (chunk.type === 'tool_result' && chunk.tool === 'youtube_search') {
-                    // Fallback for explicit tool results
-                    const toolVideos = (chunk.output || []).map(v => ({
-                        ...v,
-                        rating: v.rating || "9.2",
-                        year: v.year || "2024"
-                    }));
-
-                    setMessages(prev => {
-                        const newMsgs = [...prev];
-                        const lastMsg = newMsgs[newMsgs.length - 1];
-                        lastMsg.videos = [...(lastMsg.videos || []), ...toolVideos];
-                        return newMsgs;
-                    });
                 }
             });
 
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("TIMEOUT")), 120000) // Increased to 2 mins for heavy analysis
+            );
+
+            try {
+                await Promise.race([chatPromise, timeoutPromise]);
+            } catch (err) {
+                if (err.message === "TIMEOUT") {
+                    console.warn("Safety timeout reached. Unlocking UI.");
+                } else {
+                    throw err;
+                }
+            }
+
         } catch (err) {
             console.error("Chat Error:", err);
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: `🚨 Coach's Clipboard Error: ${err.message || "Unknown Connection Issue"}`,
-                isError: true
-            }]);
-        }
-
-        finally {
-            setIsStreaming(false);
             setMessages(prev => {
                 const newMsgs = [...prev];
-                newMsgs[newMsgs.length - 1].isStreaming = false;
+                // Update the placeholder with the error message
+                newMsgs[newMsgs.length - 1] = {
+                    role: 'assistant',
+                    content: `🚨 Coach's Clipboard Error: ${err.message || "Unknown Connection Issue"}`,
+                    isError: true,
+                    timestamp: new Date()
+                };
                 return newMsgs;
             });
+        } finally {
+            setIsStreaming(false);
+            setUploadProgress(0); // Reset for next turn
         }
     };
 
@@ -260,14 +283,24 @@ const ChatUI = ({ userData, onLogout }) => {
         e.target.value = '';
     };
 
-    const handleNewSession = () => {
+    const handleNewChat = () => {
+        setSessionId(null);
+        setMessages([]);
         if (userData?.username) {
-            localStorage.removeItem(`alphonso_msgs_${userData.username}`);
             localStorage.removeItem(`alphonso_sess_${userData.username}`);
-            setMessages([]);
-            setSessionId(null);
-            window.location.reload(); // Hard reset for freshness
         }
+        localStorage.removeItem(`alphonso_sess_active`);
+        setIsSidebarOpen(false);
+    };
+
+    const handleSessionSelect = (id) => {
+        if (id === sessionId) {
+            setIsSidebarOpen(false);
+            return;
+        }
+        setSessionId(id);
+        setMessages([]); // Clear current to trigger DB fetch
+        setIsSidebarOpen(false);
     };
 
     return (
@@ -277,7 +310,9 @@ const ChatUI = ({ userData, onLogout }) => {
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 onLogout={onLogout}
-                onNewChat={handleNewSession}
+                onNewChat={handleNewChat}
+                onSessionSelect={handleSessionSelect}
+                activeSessionId={sessionId}
             />
 
             <div className="flex-grow flex flex-col relative overflow-hidden h-full">
@@ -289,26 +324,24 @@ const ChatUI = ({ userData, onLogout }) => {
                     >
                         <Menu size={24} className="text-muted-foreground" />
                     </button>
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-muted-foreground font-medium hidden sm:inline">Personal Coaching Hub</span>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors">
-                            <Sparkles size={16} />
-                        </button>
-                    </div>
                     <div className="flex items-center gap-2">
-                        {userData.isPro ? (
-                            <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-500 text-xs font-black uppercase tracking-widest italic animate-in zoom-in duration-500">
-                                <Crown size={14} className="fill-amber-500" />
-                                Pro Athlete
-                            </div>
-                        ) : (
-                            <button 
+                        {/* Dynamic Tier Badge */}
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest italic animate-in zoom-in duration-500 ${userData.tier === 'legend' ? 'bg-sport-accent/20 border-sport-accent text-sport-accent' :
+                            userData.tier === 'elite' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' :
+                                userData.tier === 'prospect' ? 'bg-blue-500/10 border-blue-500/30 text-blue-500' :
+                                    'bg-muted/10 border-muted-foreground/20 text-muted-foreground'
+                            }`}>
+                            {(userData.tier === 'elite' || userData.tier === 'legend') && <Crown size={12} className="fill-current" />}
+                            {userData.tier || 'Rookie'}
+                        </div>
+
+                        {userData.tier !== 'legend' && (
+                            <button
                                 onClick={() => navigate('/pricing')}
                                 className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-sport)]/10 hover:bg-[var(--accent-sport)] border border-[var(--accent-sport)]/20 hover:text-black rounded-xl text-[var(--accent-sport)] text-sm font-black uppercase tracking-tighter transition-all active:scale-95"
                             >
-                                <Sparkles size={16} />
-                                Unlock Elite
+                                <Lock size={16} />
+                                {userData.tier === 'elite' ? 'Go Legend' : 'Unlock Elite'}
                             </button>
                         )}
                         <HeaderButton icon={<Share size={18} />} label="Share" />
@@ -331,54 +364,80 @@ const ChatUI = ({ userData, onLogout }) => {
                             ) : (
                                 <div className="flex items-start gap-4 overflow-hidden">
                                     <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-white/10">
-                                        <div className="w-4 h-4 bg-background rounded-sm rotate-45" />
+                                        <img src="/img/logo.png" alt="logo" className="w-full h-full rounded-full" />
                                     </div>
                                     <div className="space-y-6 flex-grow min-w-0 overflow-hidden">
                                         <div className="text-foreground prose prose-invert prose-p:leading-relaxed prose-pre:bg-black/50 overflow-x-hidden prose-pre:rounded-2xl max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                {msg.content || (msg.isStreaming ? "..." : "")}
-                                            </ReactMarkdown>
+                                            {msg.content ? (
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                    {msg.content}
+                                                </ReactMarkdown>
+                                            ) : (
+                                                msg.isStreaming && (
+                                                     <div className="flex flex-col gap-3 py-2">
+                                                         {uploadProgress > 0 && uploadProgress < 100 && (
+                                                             <div className="w-full max-w-[200px] space-y-2 animate-in fade-in duration-500">
+                                                                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[var(--accent-sport)]">
+                                                                     <span>Streaming Tape</span>
+                                                                     <span>{uploadProgress}%</span>
+                                                                 </div>
+                                                                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                                     <div 
+                                                                         className="h-full bg-[var(--accent-sport)] shadow-[0_0_10px_var(--accent-sport)] transition-all duration-300 ease-out"
+                                                                         style={{ width: `${uploadProgress}%` }}
+                                                                     />
+                                                                 </div>
+                                                             </div>
+                                                         )}
+                                                         <div className="flex items-center gap-2">
+                                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent-sport)]"></div>
+                                                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
+                                                                 {uploadProgress === 100 ? "Sync Complete. Deconstructing..." : "Coach is observing..."}
+                                                             </span>
+                                                         </div>
+                                                     </div>
+                                                 )
+                                            )}
                                         </div>
 
+                                        {/* Performance Graphs */}
+                                        {msg.images && msg.images.length > 0 && (
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 my-8">
+                                                {msg.images.map((img, i) => (
+                                                    <div key={i} className="glass rounded-[32px] overflow-hidden border border-border/50 group cursor-zoom-in animate-in fade-in zoom-in duration-700">
+                                                        <div className="bg-black/40 px-5 py-3 flex items-center justify-between border-b border-white/5">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-sport)] shadow-[0_0_8px_var(--accent-sport)] animate-pulse" />
+                                                                <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Analytical Deconstruction</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-white/20 italic">v2.5 Lab</span>
+                                                        </div>
+                                                        <div className="p-1">
+                                                            <img
+                                                                src={img.url ? img.url : (img.data?.startsWith('data:') ? img.data : `data:${img.mimeType || 'image/png'};base64,${img.data}`)}
+                                                                alt="Performance Graph"
+                                                                className="w-full h-auto rounded-[24px] transition-transform group-hover:scale-[1.02] duration-700"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         {msg.videos && msg.videos.length > 0 && (
-                                            <div className="w-full max-w-full relative mt-6 group overflow-hidden rounded-[32px] min-w-0">
-                                                {/* Carousel Controls */}
-                                                <button
-                                                    onClick={() => {
-                                                        const el = document.getElementById(`carousel-${idx}`);
-                                                        el?.scrollBy({ left: -400, behavior: 'smooth' });
-                                                    }}
-                                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full glass border border-white/20 flex items-center justify-center text-foreground z-20 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/10 shadow-2xl"
-                                                >
-                                                    <ChevronLeft size={20} />
-                                                </button>
-
-                                                <button
-                                                    onClick={() => {
-                                                        const el = document.getElementById(`carousel-${idx}`);
-                                                        el?.scrollBy({ left: 400, behavior: 'smooth' });
-                                                    }}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full glass border border-white/20 flex items-center justify-center text-foreground z-20 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/10 shadow-2xl"
-                                                >
-                                                    <ChevronRight size={20} />
-                                                </button>
-
-                                                <div
-                                                    id={`carousel-${idx}`}
-                                                    className="flex gap-6 overflow-x-auto pb-6 no-scrollbar scroll-smooth px-2"
-                                                >
-                                                    {msg.videos.map((vid, i) => (
-                                                        <YoutubeCard
-                                                            key={i}
-                                                            number={i + 1}
-                                                            title={vid.title}
-                                                            url={vid.url}
-                                                            views={vid.views || 0}
-                                                            year={vid.year || "2024"}
-                                                            thumbnail={vid.thumbnail}
-                                                        />
-                                                    ))}
-                                                </div>
+                                            <div className="w-full mt-5 space-y-1">
+                                                {msg.videos.map((vid, i) => (
+                                                    <YoutubeMediaRow
+                                                        key={i}
+                                                        title={vid.title}
+                                                        channel={vid.channel}
+                                                        url={vid.url}
+                                                        views={vid.views || 0}
+                                                        year={vid.year || "2024"}
+                                                        thumbnail={vid.thumbnail}
+                                                        audit={vid.audit}
+                                                    />
+                                                ))}
                                             </div>
                                         )}
                                     </div>
@@ -402,7 +461,7 @@ const ChatUI = ({ userData, onLogout }) => {
                                     <span className="text-xs font-bold text-foreground truncate max-w-[200px]">{pendingFile.name}</span>
                                     <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Staged for sync</span>
                                 </div>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setPendingFile(null)}
                                     className="ml-2 p-1 hover:bg-white/10 rounded-full text-muted-foreground hover:text-foreground transition-all"
@@ -413,14 +472,20 @@ const ChatUI = ({ userData, onLogout }) => {
                         )}
 
                         <div className="glass rounded-[32px] p-2 flex items-center gap-2 focus-within:ring-2 ring-[var(--accent-sport)]/30 transition-all shadow-xl border border-border">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="p-4 text-muted-foreground hover:text-foreground transition-colors"
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => {
+                                    if (userData?.tier === 'rookie') {
+                                        alert("🚨 COACH'S CLIPBOARD: Advanced lab analysis and file syncing are reserved for our Elite and Legend athletes. Level up your membership to unlock the analytics scout.");
+                                        return;
+                                    }
+                                    fileInputRef.current?.click();
+                                }}
                             >
                                 <Paperclip size={20} />
                             </button>
-                            <input 
+                            <input
                                 type="file"
                                 ref={fileInputRef}
                                 className="hidden"
@@ -456,6 +521,7 @@ const ChatUI = ({ userData, onLogout }) => {
         </div>
     );
 };
+
 
 const HeaderButton = ({ icon, label }) => (
     <button className="flex items-center gap-2 px-4 py-2 hover:bg-accent rounded-xl text-muted-foreground hover:text-foreground text-sm font-medium transition-all">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import ChatUI from './UI/chatUI';
 import SelectionScreen from './components/SelectionScreen';
@@ -26,20 +26,26 @@ function App() {
 
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  const location = useLocation();
+
   useEffect(() => {
     const checkUserAndSkip = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
           const { user } = await getUserDetails();
-          // SMART SKIP: If user already has sports and stats, jump to chat!
-          if (user.primarySports && user.primarySports.length > 0 && user.height) {
-            setUserData({
-                username: user.username,
-                height: user.height,
-                weight: user.weight,
-                sports: user.primarySports
-            });
+
+          // Always hydrate local state from DB on mount/reload
+          setUserData({
+            username: user.username,
+            height: user.height,
+            weight: user.weight,
+            sports: user.primarySports,
+            tier: user.tier || (user.isPro ? 'elite' : 'rookie')
+          });
+
+          // SMART SKIP: Only redirect to chat if user is fully onboarded AND currently at the root
+          if (user.primarySports && user.primarySports.length > 0 && user.height && location.pathname === '/') {
             navigate('/chat', { replace: true });
           }
         } catch (err) {
@@ -49,9 +55,9 @@ function App() {
       }
       setLoading(false);
     };
-    
+
     checkUserAndSkip();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -76,10 +82,10 @@ function App() {
 
   const handleAuthSuccess = async (authenticatedUser) => {
     setShowAuthModal(false);
-    
+
     // Check if the user already has a profile on the server
     const hasExistingProfile = authenticatedUser.primarySports && authenticatedUser.primarySports.length > 0;
-    
+
     // Only Sync local onboarding data if the server profile is EMPTY and we have local data
     if (!hasExistingProfile && userData.sports.length > 0) {
       try {
@@ -92,7 +98,7 @@ function App() {
 
         await updateProfile(profileToSync);
         console.log("New athlete profile synced with backend.");
-        
+
         // Update local state with the synced data
         setUserData(prev => ({ ...prev, ...profileToSync }));
       } catch (err) {
@@ -125,30 +131,30 @@ function App() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Routes>
-        <Route 
-            path="/" 
-            element={
-                <SelectionScreen 
-                    onNext={handleSportsSelected} 
-                    onLoginRequested={() => setShowAuthModal(true)} 
-                />
-            } 
+        <Route
+          path="/"
+          element={
+            <SelectionScreen
+              onNext={handleSportsSelected}
+              onLoginRequested={() => setShowAuthModal(true)}
+            />
+          }
         />
-        <Route 
-            path="/profile" 
-            element={<ProfileForm onNext={handleProfileComplete} />} 
+        <Route
+          path="/profile"
+          element={<ProfileForm onNext={handleProfileComplete} />}
         />
-        <Route 
-            path="/chat" 
-            element={<ChatUI userData={userData} onLogout={handleLogout} />} 
+        <Route
+          path="/chat"
+          element={<ChatUI userData={userData} onLogout={handleLogout} />}
         />
-        <Route 
-            path="/pricing" 
-            element={<PricingPage />} 
+        <Route
+          path="/pricing"
+          element={<PricingPage />}
         />
-        <Route 
-            path="/checkout/:planId" 
-            element={<CheckoutPage userData={userData} />} 
+        <Route
+          path="/checkout/:planId"
+          element={<CheckoutPage userData={userData} />}
         />
         {/* Fallback to home */}
         <Route path="*" element={<Navigate to="/" replace />} />

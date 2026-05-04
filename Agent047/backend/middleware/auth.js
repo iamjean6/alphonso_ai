@@ -14,8 +14,14 @@ const authMiddleware = (req, res, next) => {
         req.user = decoded; // Should contain the 'uid'
         next();
     } catch (error) {
-        console.error("Auth Middleware Error:", error);
-        res.status(401).json({ message: "Invalid token." });
+        console.error("Auth Middleware Error:", error.message);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                message: "Session expired. Please re-login to continue syncing your lab data.",
+                code: "TOKEN_EXPIRED" 
+            });
+        }
+        res.status(401).json({ message: "Authentication failed. Invalid token." });
     }
 };
 

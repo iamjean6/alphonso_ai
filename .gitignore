@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env
 backend/.env
+AI/analytics/
+AI/video_agent/
 __pycache__/
 AI/video_agent/
 AI/.venv/

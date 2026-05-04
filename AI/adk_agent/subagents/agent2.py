@@ -35,7 +35,12 @@ def search_youtube(query: str):
                 part='snippet',
                 q=query,
                 type='video',
-                maxResults=30
+                maxResults=30,
+                publishedAfter="2011-01-01T00:00:00Z",  # Corrected to fetch videos after 2010
+                videoDuration="medium", # API accepts a single string: 'any', 'short', 'medium', or 'long'
+                videoDefinition="any", # Optimization: focus on high-quality content
+                videoType="any",
+                order="relevance"
             )
             response = search_request.execute()
             items = response.get('items', [])
@@ -82,7 +87,7 @@ def after_tool_callback(tool, args, tool_context, tool_response):
     # Only apply to our specific search tool
     if tool.name == "search_youtube" and isinstance(tool_response, list):
         # Sort by views descending and take the top 10
-        sorted_videos = sorted(tool_response, key=lambda x: x.get('views', 0), reverse=True)[:10]
+        sorted_videos = sorted(tool_response, key=lambda x: x.get('views', 0), reverse=True)[:15]
         return sorted_videos
     
     return tool_response
