@@ -4,9 +4,10 @@ import './App.css';
 import ChatUI from './UI/chatUI';
 import SelectionScreen from './components/SelectionScreen';
 import ProfileForm from './components/ProfileForm';
-import AuthModal from './components/AuthModal';
 import PricingPage from './pages/PricingPage';
 import CheckoutPage from './pages/CheckoutPage';
+import LoginPage from './pages/Auth/LoginPage';
+import SignupPage from './pages/Auth/SignupPage';
 import { updateProfile, getUserDetails, logout, setAccessToken, refreshAccessToken } from '../services/api';
 import { RingLoader } from 'react-spinners';
 
@@ -23,8 +24,6 @@ function App() {
       sports: []
     };
   });
-
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const location = useLocation();
 
@@ -81,32 +80,41 @@ function App() {
 
   const handleProfileComplete = (profileData) => {
     setUserData(prev => ({ ...prev, ...profileData }));
-    setShowAuthModal(true); // Open the Gate
+    navigate('/signup'); // Direct to signup with the profile data ready to sync
   };
 
-  const handleAuthSuccess = async (authenticatedUser) => {
-    setShowAuthModal(false);
-
+  const handleAuthSuccess = async (authenticatedUser, localProfile = null) => {
     // Check if the user already has a profile on the server
     const hasExistingProfile = authenticatedUser.primarySports && authenticatedUser.primarySports.length > 0;
 
+    // Use either the passed localProfile or the global state
+    const sportsToSync = localProfile?.sports || userData.sports;
+    const heightToSync = localProfile?.height || userData.height;
+    const weightToSync = localProfile?.weight || userData.weight;
+
     // Only Sync local onboarding data if the server profile is EMPTY and we have local data
-    if (!hasExistingProfile && userData.sports.length > 0) {
+    if (!hasExistingProfile && sportsToSync?.length > 0) {
       try {
         const profileToSync = {
-          height: userData.height,
-          weight: userData.weight,
-          primarySports: userData.sports,
-          goals: `Improve performance in ${userData.sports.join(', ')}`
+          height: Number(heightToSync),
+          weight: Number(weightToSync),
+          primarySports: sportsToSync,
+          goals: `Improve performance in ${sportsToSync.join(', ')}`
         };
 
-        await updateProfile(profileToSync);
-        console.log("New athlete profile synced with backend.");
+        // Small timeout to ensure the token interceptor in api.js has the latest _accessToken
+        setTimeout(async () => {
+          try {
+            await updateProfile(profileToSync);
+            console.log("✅ Athlete profile successfully synced with MongoDB.");
+            setUserData(prev => ({ ...prev, ...profileToSync }));
+          } catch (err) {
+            console.error("❌ Profile sync failed:", err.response?.data || err.message);
+          }
+        }, 500);
 
-        // Update local state with the synced data
-        setUserData(prev => ({ ...prev, ...profileToSync }));
       } catch (err) {
-        console.error("Failed to sync new profile during onboarding:", err);
+        console.error("Critical error during profile preparation:", err);
       }
     } else if (hasExistingProfile) {
       // Pull existing profile into local state for visibility
@@ -140,9 +148,17 @@ function App() {
           element={
             <SelectionScreen
               onNext={handleSportsSelected}
-              onLoginRequested={() => setShowAuthModal(true)}
+              onLoginRequested={() => navigate('/login')}
             />
           }
+        />
+        <Route
+          path="/login"
+          element={<LoginPage onSuccess={handleAuthSuccess} />}
+        />
+        <Route
+          path="/signup"
+          element={<SignupPage onSuccess={handleAuthSuccess} initialData={userData} />}
         />
         <Route
           path="/profile"
@@ -163,13 +179,6 @@ function App() {
         {/* Fallback to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-        initialUsername={userData.username}
-      />
     </div>
   );
 }

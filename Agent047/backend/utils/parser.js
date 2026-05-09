@@ -29,7 +29,7 @@ export const parseAlphonsoResponse = (text) => {
         const idMatch = line.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([0-9A-Za-z_-]{11})/i);
         if (idMatch) {
             const videoId = idMatch[1];
-            
+
             // Extract metadata if present
             const viewsMatch = line.match(/Views:\s*(\d+)/i);
             const yearMatch = line.match(/Year:\s*(\d{4})/i);
@@ -71,7 +71,7 @@ export const parseAlphonsoResponse = (text) => {
         if (titleRowMatch) {
             const numbering = titleRowMatch[1] || "";
             const title = titleRowMatch[2].trim();
-            return `${numbering}**${title}**`; 
+            return `${numbering}**${title}**`;
         }
         return line;
     }).filter(line => {

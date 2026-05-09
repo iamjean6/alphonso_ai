@@ -14,13 +14,25 @@ import { chatWithAi, getUploadUrl } from './controller/aiController.js';
 import { updateProfile } from './controller/profiles.js';
 import { listSessions, deleteSession, getSessionMessages } from './controller/sessionController.js';
 import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
-import { login, register, user, refresh, logout, checkUsername } from './controller/authController.js';
+import { login, register, user, refresh, logout, checkUsername, requestOTP } from './controller/authController.js';
 import { bootstrapCache } from './cache/bootstrap.js';
 
 dotenv.config();
 
 const app = express();
 
+// 1. GLOBAL CORS CONFIGURATION (Must be at the top)
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
+app.use(cookieParser());
+
+// 2. LOGGING (Morgan)
 // Custom Morgan Token for AI Context Latency (TTFB)
 morgan.token('context-latency', (req, res) => {
     if (!req._startTime || !res._header) return '-';
@@ -28,7 +40,6 @@ morgan.token('context-latency', (req, res) => {
     return `${duration}ms`;
 });
 
-// Initialize Morgan with a professional coaching format
 app.use(morgan((tokens, req, res) => {
     return [
         `[${new Date().toISOString()}]`,
@@ -41,13 +52,6 @@ app.use(morgan((tokens, req, res) => {
         tokens['remote-addr'](req, res)
     ].join(' ');
 }));
-
-app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
-}));
-app.use(express.json());
-app.use(cookieParser());
 
 
 // MongoDB Connection
@@ -70,6 +74,7 @@ app.post("/chat", authMiddleware, checkUsage, chatWithAi);
 app.post("/get-upload-url", authMiddleware, checkUsage, getUploadUrl);
 
 // AUTH ROUTES (Public)
+app.post("/api/auth/request-otp", requestOTP);
 app.post("/api/auth/signup", register);
 app.get("/api/auth/check-username", checkUsername);
 app.post("/api/auth/login", login);

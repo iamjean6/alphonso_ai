@@ -25,6 +25,7 @@ __pycache__/
 !adk.yaml
 !cors-config.json
 AI/video_agent/
+AI/logger.log
 AI/.venv/
 AI/__pycache__/
 AI/adk_agent/subagents/__pycache__/

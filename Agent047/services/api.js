@@ -94,8 +94,9 @@ api.interceptors.response.use(
 /**
  * 1. AUTHENTICATION
  */
-export const register = async (email, password, username) => {
-    const response = await api.post(`/api/auth/signup`, { email, password, username });
+export const register = async (userData) => {
+    // userData contains { email, password, username, otp }
+    const response = await api.post(`/api/auth/signup`, userData);
     if (response.data.token) {
         setAccessToken(response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -103,8 +104,10 @@ export const register = async (email, password, username) => {
     return response.data;
 };
 
-export const login = async (email, password) => {
-    const response = await api.post(`/api/auth/login`, { email, password });
+export const login = async (credentials) => {
+    // credentials contains { email, password } 
+    // note: 'email' field can be username OR email due to backend resilience update
+    const response = await api.post(`/api/auth/login`, credentials);
     if (response.data.token) {
         setAccessToken(response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -127,6 +130,16 @@ export const logout = async () => {
         localStorage.removeItem("user");
         // Clear tokens from memory and local storage
     }
+};
+
+export const checkUsername = async (username) => {
+    const response = await api.get(`/api/auth/check-username?username=${username}`);
+    return response.data; // { available: true/false }
+};
+
+export const requestOTP = async (email) => {
+    const response = await api.post(`/api/auth/request-otp`, { email });
+    return response.data;
 };
 
 /**

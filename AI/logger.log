@@ -2546,3 +2546,104 @@ how can this data become an agile athlete' (App: alphonso_performance_mentor, Us
 2026-05-08 17:08:33,886 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
 2026-05-08 17:09:16,555 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 48.01s) >>>
 2026-05-08 18:00:47,891 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 18:02:20,761 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 19:53:16,613 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:53:16,630 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i've been sitting  and sleeping all day on my matr... ---
+2026-05-08 19:53:16,636 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 19:53:19,492 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:53:19,497 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 19:53:19,503 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:53:19,507 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 19:53:19,517 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:53:19,518 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i've been sitting  and sleeping all day on my matr... ---
+2026-05-08 19:53:19,523 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 19:53:19,524 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 19:53:30,495 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 19:54:15,758 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 56.24s) >>>
+2026-05-08 19:54:15,758 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 19:54:15,769 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:54:15,773 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i've been sitting  and sleeping all day on my matr... ---
+2026-05-08 19:54:15,773 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 19:54:21,662 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 19:54:53,779 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 38.01s) >>>
+2026-05-08 19:54:53,785 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:54:53,789 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i've been sitting  and sleeping all day on my matr... ---
+2026-05-08 19:54:53,793 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 19:55:08,916 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 19:55:47,343 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 53.56s) >>>
+2026-05-08 19:55:47,347 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 19:55:47,351 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i've been sitting  and sleeping all day on my matr... ---
+2026-05-08 19:55:47,352 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 19:55:54,239 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 19:56:24,606 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 37.26s) >>>
+2026-05-09 15:28:48,180 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:28:48,279 - adk_agent.agent - INFO - Memory: Master Fetch for 'i want to do something basketball wise today, my c...'
+2026-05-09 15:28:51,736 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-09 15:28:51,737 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-09 15:28:53,315 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-09 15:28:53,316 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to do something basketball wise today, my c... ---
+2026-05-09 15:28:53,320 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-09 15:28:55,802 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:28:55,811 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-09 15:28:55,818 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:28:55,820 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-09 15:28:55,824 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:28:55,829 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i want to do something basketball wise today, my c... ---
+2026-05-09 15:28:55,833 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-09 15:28:55,837 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-09 15:29:05,015 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-09 15:29:14,187 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 18.36s) >>>
+2026-05-09 15:29:14,188 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-09 15:29:14,202 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:29:14,204 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i want to do something basketball wise today, my c... ---
+2026-05-09 15:29:14,205 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-09 15:29:16,925 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-09 15:29:48,507 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 34.30s) >>>
+2026-05-09 15:29:48,510 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:29:48,511 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i want to do something basketball wise today, my c... ---
+2026-05-09 15:29:48,513 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-09 15:29:50,740 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:30:08,288 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:30:19,634 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:30:33,373 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:30:44,889 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:30:56,999 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:31:08,433 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:31:20,299 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:31:41,955 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 113.45s) >>>
+2026-05-09 15:31:41,969 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:31:41,979 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to do something basketball wise today, my c... ---
+2026-05-09 15:31:41,984 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-09 15:31:44,256 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-09 15:32:19,993 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 38.02s) >>>
+2026-05-09 15:43:55,309 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:43:55,310 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: are there vids that can help me test my basketball... ---
+2026-05-09 15:43:55,311 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-09 15:44:01,101 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:44:01,106 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-09 15:44:01,109 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:44:01,112 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-09 15:44:01,115 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:44:01,127 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: are there vids that can help me test my basketball... ---
+2026-05-09 15:44:01,136 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-09 15:44:01,144 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-09 15:44:09,767 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-09 15:44:22,878 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 21.76s) >>>
+2026-05-09 15:44:22,880 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-09 15:44:22,895 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:44:22,900 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: are there vids that can help me test my basketball... ---
+2026-05-09 15:44:22,901 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-09 15:44:25,368 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-09 15:44:46,474 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 23.58s) >>>
+2026-05-09 15:44:46,475 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:44:46,477 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: are there vids that can help me test my basketball... ---
+2026-05-09 15:44:46,478 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-09 15:44:49,239 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:45:16,414 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:45:36,197 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-09 15:46:06,863 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 80.39s) >>>
+2026-05-09 15:46:06,866 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: powelljean16@gmail.com <<<
+2026-05-09 15:46:06,867 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: are there vids that can help me test my basketball... ---
+2026-05-09 15:46:06,868 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-09 15:46:09,307 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-09 15:46:38,957 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 32.09s) >>>

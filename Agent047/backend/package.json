@@ -5,13 +5,20 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "tsx watch index.js",
+    "email": "email dev --dir emails"
+  },
+  "nodemonConfig": {
+    "exec": "tsx watch",
+    "ext": "js,jsx,json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
+    "@react-email/components": "^0.0.32",
+    "@react-email/render": "^2.0.8",
     "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
@@ -25,6 +32,14 @@
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
     "nodemon": "^3.1.14",
-    "redis": "^5.12.1"
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-email": "6.1.1",
+    "redis": "^5.12.1",
+    "resend": "^6.12.3"
+  },
+  "devDependencies": {
+    "@react-email/ui": "6.1.1",
+    "tsx": "^4.21.0"
   }
 }

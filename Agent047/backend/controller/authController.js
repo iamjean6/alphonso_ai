@@ -1,7 +1,8 @@
 import User from '../model/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { checkUsernameExists, addUsernameToBloom } from '../cache/query.js';
+import { checkUsernameExists, addUsernameToBloom, saveOTP, verifyOTP } from '../cache/query.js';
+import { generateOTP, sendVerificationEmail } from '../utils/resend.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_dev_secret_key_change_me_in_production';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your_refresh_secret_key_change_me';
@@ -40,7 +41,16 @@ const sendRefreshToken = (res, token) => {
  */
 export const register = async (req, res) => {
     try {
-        const { email, password, username } = req.body;
+        const { email, password, username, otp } = req.body;
+        
+        if (!otp) return res.status(400).json({ message: "Verification code is required." });
+
+        // 0. VERIFY OTP (Fast Redis Check)
+        const otpCheck = await verifyOTP(email, otp);
+        if (!otpCheck.valid) {
+            const errorMsg = otpCheck.reason === "EXPIRED" ? "Code expired. Please request a new one." : "Invalid verification code.";
+            return res.status(400).json({ message: errorMsg });
+        }
         const finalUsername = username || email.split('@')[0];
 
         // 1. Bloom Filter Check (Fast)
@@ -83,7 +93,14 @@ export const register = async (req, res) => {
         res.status(201).json({
             message: "Athlete registered successfully!",
             token: accessToken,
-            user: { email: newUser.email, username: newUser.username, tier: newUser.tier }
+            user: { 
+                email: newUser.email, 
+                username: newUser.username, 
+                tier: newUser.tier,
+                height: newUser.height,
+                weight: newUser.weight,
+                primarySports: newUser.primarySports
+            }
         });
 
     } catch (error) {
@@ -99,9 +116,16 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
+        // 1. Identity Resilience: Search by Email OR Username
+        const user = await User.findOne({
+            $or: [
+                { email: email },
+                { username: email } // In case the user typed their username in the email field
+            ]
+        });
+
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials." });
+            return res.status(401).json({ message: "No athlete found with those credentials." });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -120,7 +144,14 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             token: accessToken,
-            user: { email: user.email, username: user.username, tier: user.tier }
+            user: { 
+                email: user.email, 
+                username: user.username, 
+                tier: user.tier,
+                height: user.height,
+                weight: user.weight,
+                primarySports: user.primarySports
+            }
         });
 
     } catch (error) {
@@ -214,5 +245,35 @@ export const checkUsername = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: "Check failed." });
+    }
+};
+
+/**
+ * REQUEST OTP
+ * Generates and sends a code to the user's email.
+ */
+export const requestOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required." });
+
+        // 1. Generate 6-digit code
+        const otp = generateOTP();
+
+        // 2. Store in Redis (5 min expiry)
+        const saved = await saveOTP(email, otp);
+        if (!saved) throw new Error("Failed to store OTP");
+
+        // 3. Send Email via Resend
+        const emailResult = await sendVerificationEmail(email, otp);
+        if (!emailResult.success) {
+            return res.status(500).json({ message: "Failed to send verification email." });
+        }
+
+        res.status(200).json({ message: "Verification code sent to your email." });
+
+    } catch (error) {
+        console.error("[OTP Request Error]", error.message);
+        res.status(500).json({ message: "Unable to send verification code." });
     }
 };

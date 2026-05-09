@@ -77,15 +77,15 @@ const SelectionScreen = ({ onNext, onLoginRequested }) => {
               CONTINUE
             </button>
 
-            <p className="text-black text-lg">
-              Already have a registered account?{" "}
-              <button
-                onClick={onLoginRequested}
-                className="text-[var(--accent-sport)] font-bold hover:underline"
-              >
-                Click to login
-              </button>
+            <p className="text-muted-foreground text-sm uppercase tracking-widest mb-2 font-bold opacity-50">
+              Returning Athlete?
             </p>
+            <button
+              onClick={onLoginRequested}
+              className="text-[var(--accent-sport)] font-black text-xl hover:scale-110 transition-transform uppercase tracking-tighter"
+            >
+              Click to login
+            </button>
           </div>
 
           <div className="max-w-xl text-center">
