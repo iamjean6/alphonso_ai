@@ -5,6 +5,7 @@ import Session from '../model/session.js';
 import Message from '../model/message.js';
 import { parseAlphonsoResponse } from '../utils/parser.js';
 import { getSignedUrl } from '../utils/gcs.js';
+import { pushMessage, getUserProfile, setUserProfile } from '../cache/query.js';
 
 // 1. CHAT RELAY (The Streamer)
 export const chatWithAi = async (req, res) => {
@@ -18,14 +19,32 @@ export const chatWithAi = async (req, res) => {
         // --- IDENTITY RESILIENCE ---
         const userIdForAi = uid || email;
 
-        // Pull athlete physical profile
-        const athlete = await User.findOne({
-            $or: [{ uid: userIdForAi }, { email: userIdForAi }]
-        });
+        // 1. READ-THROUGH CACHE: Check Redis for athlete profile
+        let athlete = await getUserProfile(userIdForAi);
+        
+        if (!athlete) {
+            console.log(`[Elite Cache] Profile Miss for ${userIdForAi}. Fetching from DB...`);
+            athlete = await User.findOne({
+                $or: [{ uid: userIdForAi }, { email: userIdForAi }]
+            });
+            
+            if (athlete) {
+                // HYDRATE: Store a simplified profile for the AI
+                const profileToCache = {
+                    weight: athlete.weight?.toString() || "",
+                    height: athlete.height?.toString() || "",
+                    goals: athlete.goals || "",
+                    primarySports: athlete.primarySports?.join(', ') || ""
+                };
+                setUserProfile(userIdForAi, profileToCache);
+            }
+        } else {
+            console.log(`[Elite Cache] Profile Hit for ${userIdForAi}`);
+        }
 
         let athleteBio = null;
         if (athlete && athlete.weight) {
-            athleteBio = `Athlete Stats: Weight ${athlete.weight}kg, Height ${athlete.height}cm. Goals: ${athlete.goals || 'General performance'}. Primary Sports: ${athlete.primarySports.join(', ')}`;
+            athleteBio = `Athlete Stats: Weight ${athlete.weight}kg, Height ${athlete.height}cm. Goals: ${athlete.goals || 'General performance'}. Primary Sports: ${Array.isArray(athlete.primarySports) ? athlete.primarySports.join(', ') : athlete.primarySports}`;
         }
 
         // Atomic Session Record
@@ -40,12 +59,16 @@ export const chatWithAi = async (req, res) => {
         );
 
         // PERSIST USER MESSAGE
-        await Message.create({
+        const userMsg = {
             sessionId: finalSessionId,
             uid: userIdForAi,
             role: 'user',
             content: message
-        });
+        };
+
+        // Fire-and-forget: Redis (Fast) and MongoDB (Async)
+        pushMessage(finalSessionId, userMsg);
+        Message.create(userMsg).catch(err => console.error("[DB] User message persist failed:", err));
 
         // Call Python FastAPI server with streaming enabled
         const response = await axios({
@@ -66,7 +89,7 @@ export const chatWithAi = async (req, res) => {
             responseType: 'stream'
 
             
-        });console.log(response.data)
+        });
 
         // Set headers for SSE (Server-Sent Events)
         res.setHeader('Content-Type', 'text/event-stream');
@@ -124,7 +147,7 @@ export const chatWithAi = async (req, res) => {
         response.data.on('end', async () => {
             try {
                 const { cleanedText, videos } = parseAlphonsoResponse(fullResponse);
-                await Message.create({
+                const assistantMsg = {
                     sessionId: finalSessionId,
                     uid: userIdForAi,
                     role: 'assistant',
@@ -132,10 +155,17 @@ export const chatWithAi = async (req, res) => {
                     rawContent: fullResponse,
                     videos,
                     images: sessionImages
-                });
-                console.log(`[DB] Persisted AI response for session ${finalSessionId} with ${sessionImages.length} images.`);
+                };
+
+                // Sync to Hot Cache (Redis)
+                pushMessage(finalSessionId, assistantMsg);
+
+                // Persist to Archive (MongoDB)
+                await Message.create(assistantMsg);
+                
+                console.log(`[Elite Cache] Persisted AI response for session ${finalSessionId}.`);
             } catch (dbErr) {
-                console.error("[DB] Failed to persist AI response:", dbErr.message);
+                console.error("[DB/Cache] Failed to persist AI response:", dbErr.message);
             }
         });
 

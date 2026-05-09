@@ -12,15 +12,15 @@ export const parseAlphonsoResponse = (text) => {
     let lastAudit = "";
 
     lines.forEach(line => {
-        // 1. CAPTURE TITLE/CHANNEL (Supports both bold and raw text)
-        const titleRowMatch = line.match(/(?:\d+\.\s+)?(?:\*\*)?([^*]+?)(?:\*\*)?\s+by\s+([^-:[\]]+?)(?:\s+Audit:|\s*\*Audit:\*|$)/i);
+        // 1. CAPTURE TITLE/CHANNEL (Supports 'by', '—', and '-')
+        const titleRowMatch = line.match(/(?:\d+\.\s+)?(?:\*\*)?([^*]+?)(?:\*\*)?\s+(?:by|—|-)\s+([^-:[\]]+?)(?:\s+Audit:|\s*\*Audit:\*|$)/i);
         if (titleRowMatch) {
             lastTitle = titleRowMatch[1].trim();
             lastChannel = titleRowMatch[2].trim();
         }
 
-        // 1.5 CAPTURE AUDIT (Handles both standalone and inline after "Audit:")
-        const auditMatch = line.match(/(?:\s+Audit:|\*Audit:\*)\s*(.+?)(?:\s+\[System Metadata\]|$)/i);
+        // 1.5 CAPTURE AUDIT (Handles standalone, 'Audit:', '*Audit:*', and 'Audit* Why it's in your film room:*')
+        const auditMatch = line.match(/(?:\s+Audit:|\*Audit:\*|\*Audit\* Why it's in your film room:\*)\s*(.+?)(?:\s+\[System Metadata\]|\s+\[SYSTEM\]|$)/i);
         if (auditMatch) {
             lastAudit = auditMatch[1].trim();
         }
@@ -53,6 +53,8 @@ export const parseAlphonsoResponse = (text) => {
                 });
                 // Reset transient state
                 lastAudit = "";
+                lastTitle = "";
+                lastChannel = "";
             }
         }
     });
@@ -73,9 +75,10 @@ export const parseAlphonsoResponse = (text) => {
         }
         return line;
     }).filter(line => {
-        // Remove System Metadata, Link, and Audit lines
-        const isScrubLine = /(youtube\.com|youtu\.be|\[System Metadata\]|\*Audit:\*|Views:|Year:|Thumb:|Link:)/i.test(line);
-        return !isScrubLine;
+        // Remove System Metadata, Link, Audit lines, and decorative horizontal lines
+        const isScrubLine = /(youtube\.com|youtu\.be|\[System Metadata\]|\[SYSTEM\]|\*Audit:\*|Views:|Year:|Thumb:|Link:)/i.test(line);
+        const isDecorativeLine = /^[─═\-_*]{5,}$/.test(line.trim());
+        return !isScrubLine && !isDecorativeLine;
     }).join('\n');
 
     return {

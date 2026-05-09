@@ -3,6 +3,7 @@ import cors from 'cors'
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 // Middlewares
 import authMiddleware from './middleware/auth.js';
@@ -13,7 +14,8 @@ import { chatWithAi, getUploadUrl } from './controller/aiController.js';
 import { updateProfile } from './controller/profiles.js';
 import { listSessions, deleteSession, getSessionMessages } from './controller/sessionController.js';
 import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
-import { login, register, user } from './controller/authController.js';
+import { login, register, user, refresh, logout, checkUsername } from './controller/authController.js';
+import { bootstrapCache } from './cache/bootstrap.js';
 
 dotenv.config();
 
@@ -40,13 +42,21 @@ app.use(morgan((tokens, req, res) => {
     ].join(' ');
 }));
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("Connected to MongoDB"))
+    .then(async () => {
+        console.log("Connected to MongoDB");
+        // Warm up the Redis cache (Bloom Filter, etc.)
+        await bootstrapCache();
+    })
     .catch((err) => console.log("MongoDB connection error: ", err));
 
 // 2. ROUTES
@@ -61,7 +71,10 @@ app.post("/get-upload-url", authMiddleware, checkUsage, getUploadUrl);
 
 // AUTH ROUTES (Public)
 app.post("/api/auth/signup", register);
+app.get("/api/auth/check-username", checkUsername);
 app.post("/api/auth/login", login);
+app.post("/api/auth/refresh", refresh);
+app.post("/api/auth/logout", logout);
 app.get("/api/auth/user", authMiddleware, user);
 
 // Flow: Auth -> Usage Check -> Profile Update

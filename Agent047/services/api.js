@@ -4,24 +4,88 @@ import axios from "axios";
 const BASE_URL = 'http://localhost:3000';
 
 /**
- * Setup Auth Headers
+ * In-memory token storage (Security best practice)
  */
-const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+let _accessToken = null;
+
+export const setAccessToken = (token) => {
+    _accessToken = token;
 };
 
+export const getAccessToken = () => _accessToken;
+
 /**
- * AXIOS INTERCEPTOR: Handle expired sessions globally
+ * Axios Instance with Credentials
+ * BTS: withCredentials is REQUIRED to send the 'refreshToken' cookie.
  */
-axios.interceptors.response.use(
+const api = axios.create({
+    baseURL: BASE_URL,
+    withCredentials: true 
+});
+
+/**
+ * Request Interceptor: Attach the memory-stored Access Token
+ */
+api.interceptors.request.use((config) => {
+    if (_accessToken) {
+        config.headers.Authorization = `Bearer ${_accessToken}`;
+    }
+    return config;
+}, (error) => Promise.reject(error));
+
+/**
+ * Response Interceptor: Handle 401 and Refresh Token
+ */
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const subscribeTokenRefresh = (cb) => {
+    refreshSubscribers.push(cb);
+};
+
+const onTokenRefreshed = (token) => {
+    refreshSubscribers.map((cb) => cb(token));
+    refreshSubscribers = [];
+};
+
+api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            console.warn("Session expired or invalid token. Clearing storage.");
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            // Optional: window.location.href = '/login'; 
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
+            
+            // If the error code is specifically TOKEN_EXPIRED, we attempt refresh
+            // Otherwise, it's a hard 401 (invalid credentials, etc.)
+            if (error.response.data.code === 'TOKEN_EXPIRED' || !originalRequest.headers.Authorization) {
+                
+                if (isRefreshing) {
+                    return new Promise((resolve) => {
+                        subscribeTokenRefresh((token) => {
+                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                            resolve(api(originalRequest));
+                        });
+                    });
+                }
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                try {
+                    const { token } = await refreshAccessToken();
+                    setAccessToken(token);
+                    isRefreshing = false;
+                    onTokenRefreshed(token);
+
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    isRefreshing = false;
+                    console.error("Refresh token failed. Logging out.");
+                    logout();
+                    return Promise.reject(refreshError);
+                }
+            }
         }
         return Promise.reject(error);
     }
@@ -31,42 +95,50 @@ axios.interceptors.response.use(
  * 1. AUTHENTICATION
  */
 export const register = async (email, password, username) => {
-    const response = await axios.post(`${BASE_URL}/api/auth/signup`, { email, password, username });
+    const response = await api.post(`/api/auth/signup`, { email, password, username });
     if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
+        setAccessToken(response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
     }
     return response.data;
 };
 
 export const login = async (email, password) => {
-    const response = await axios.post(`${BASE_URL}/api/auth/login`, { email, password });
+    const response = await api.post(`/api/auth/login`, { email, password });
     if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
+        setAccessToken(response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
     }
     return response.data;
 };
 
-export const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+export const refreshAccessToken = async () => {
+    const response = await api.post(`/api/auth/refresh`);
+    return response.data; // { token: '...' }
+};
+
+export const logout = async () => {
+    try {
+        await api.post(`/api/auth/logout`);
+    } catch (e) {
+        console.warn("Logout request failed on server side.");
+    } finally {
+        setAccessToken(null);
+        localStorage.removeItem("user");
+        // Clear tokens from memory and local storage
+    }
 };
 
 /**
  * 2. PROFILE MANAGEMENT
  */
 export const getUserDetails = async () => {
-    const response = await axios.get(`${BASE_URL}/api/auth/user`, {
-        headers: getAuthHeaders()
-    });
-    return response.data; // Expected { user: { ... } }
+    const response = await api.get(`/api/auth/user`);
+    return response.data; 
 };
 
 export const updateProfile = async (profileData) => {
-    const response = await axios.post(`${BASE_URL}/update-profile`, profileData, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.post(`/update-profile`, profileData);
     return response.data;
 };
 
@@ -74,23 +146,17 @@ export const updateProfile = async (profileData) => {
  * 3. CHAT SESSIONS
  */
 export const getSessions = async () => {
-    const response = await axios.get(`${BASE_URL}/sessions`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(`/sessions`);
     return response.data;
 };
 
 export const deleteSession = async (sessionId) => {
-    const response = await axios.delete(`${BASE_URL}/sessions/${sessionId}`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.delete(`/sessions/${sessionId}`);
     return response.data;
 };
 
 export const getSessionMessages = async (sessionId) => {
-    const response = await axios.get(`${BASE_URL}/sessions/${sessionId}/messages`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(`/sessions/${sessionId}/messages`);
     return response.data;
 };
 
@@ -103,18 +169,25 @@ export const chatWithAi = async (message, sessionId, onChunk) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            ...getAuthHeaders()
+            'Authorization': `Bearer ${_accessToken}`
         },
         body: JSON.stringify({ message, session_id: sessionId })
     });
 
     if (!response.ok) {
-        const err = await response.json();
         if (response.status === 401) {
-            console.warn("Chat session expired. Clearing storage.");
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
+            // Attempt a one-time manual refresh for streaming requests if they fail
+            try {
+                const { token } = await refreshAccessToken();
+                setAccessToken(token);
+                // Retry once
+                return chatWithAi(message, sessionId, onChunk);
+            } catch (err) {
+                console.error("Stream failed after refresh attempt.");
+                throw new Error("Session expired. Please refresh the page.");
+            }
         }
+        const err = await response.json();
         throw new Error(err.message || "AI Service Unavailable");
     }
 
@@ -133,18 +206,17 @@ export const chatWithAi = async (message, sessionId, onChunk) => {
                 try {
                     const jsonStr = line.slice(6).trim();
                     if (jsonStr === '[DONE]') {
-                        return; // Explicit end signal
+                        return; 
                     }
                     
                     const data = JSON.parse(jsonStr);
-                    onChunk(data); // Call the callback with the parsed chunk
+                    onChunk(data); 
                     
-                    // Safety: Break if server explicitly says it's finished
                     if (data.status === 'finished') {
                         return;
                     }
                 } catch (e) {
-                    // Ignore malformed JSON or empty lines
+                    // Ignore malformed JSON
                 }
             }
         }
@@ -152,32 +224,24 @@ export const chatWithAi = async (message, sessionId, onChunk) => {
 };
 
 /**
- * 5. PERFORMANCE STATS UPLOAD (High-Performance Direct Stream)
- * BTS: Bypasses Node/Python servers for the actual file transfer.
- * Handshake: Frontend -> Node -> Python -> Signed URL -> Frontend -> GCS.
+ * 5. PERFORMANCE STATS UPLOAD
  */
 export const uploadStatsFile = async (file, sessionId, onProgress) => {
-    // 🛡️ Elite Guard: 50MB Limit Enforcement
-    const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-        throw new Error("🚨 ATHLETE ALERT: Video exceeds 50MB limit. Please trim the tape for the best analysis experience.");
+        throw new Error("🚨 ATHLETE ALERT: Video exceeds 50MB limit.");
     }
 
     try {
-        // Step 1: Request the 'Master Key' (Signed URL)
-        const handshakeResponse = await axios.post(`${BASE_URL}/get-upload-url`, {
+        const handshakeResponse = await api.post(`/get-upload-url`, {
             filename: file.name,
             content_type: file.type || "application/octet-stream",
             session_id: sessionId
-        }, {
-            headers: getAuthHeaders()
         });
 
         const { upload_url } = handshakeResponse.data;
 
-        // Step 2: Direct Push to Google Cloud Storage
-        // BTS: We use a raw 'PUT' as required by GCS Signed URLs.
-        // We bypass our own servers entirely for this step.
+        // Note: Direct GCS upload does NOT need our Auth header as it uses a Signed URL.
         const uploadResponse = await axios.put(upload_url, file, {
             headers: {
                 "Content-Type": file.type || "application/octet-stream"
@@ -190,11 +254,10 @@ export const uploadStatsFile = async (file, sessionId, onProgress) => {
             }
         });
 
-        console.log(`[Visual Lab] Direct Stream Complete: ${file.name}`);
         return { status: "success", filename: file.name };
 
     } catch (err) {
         console.error("Direct Upload Error:", err);
-        throw new Error(err.response?.data?.message || err.message || "Failed to stream video to the Lab.");
+        throw new Error(err.response?.data?.message || err.message || "Failed to stream video.");
     }
 };

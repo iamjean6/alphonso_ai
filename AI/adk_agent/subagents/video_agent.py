@@ -26,8 +26,8 @@ async def unified_video_interceptor(callback_context: CallbackContext, llm_reque
     # 🏁 Audit Start: Track ingestion time
     callback_context.session.state["_media_scout_start"] = time.time()
     
-    # 1. State-Based YouTube Detection (Zero Latency)
-    url = callback_context.session.state.get("active_video_uri")
+    # 1. State-Based YouTube Detection (L1.5 Turn-Based Fix)
+    url = callback_context.state.get("active_video_uri")
     
     if url:
         last_message = llm_request.contents[-1] if llm_request.contents else None
@@ -37,14 +37,9 @@ async def unified_video_interceptor(callback_context: CallbackContext, llm_reque
                 video_part = types.Part.from_uri(file_uri=url, mime_type="video/mp4")
                 last_message.parts.append(video_part)
 
-    # 2. GCS Video Detection (Visual Audit Service)
     try:
-        from adk_agent.agent import artifact_service
-        artifact_keys = await artifact_service.list_artifact_keys(
-            app_name=callback_context.session.app_name,
-            user_id=callback_context.session.user_id,
-            session_id=callback_context.session.id
-        )
+        # [L1.3 Optimization] Use cached artifacts from state instead of re-listing
+        artifact_keys = callback_context.state.get("cached_artifacts", [])
         
         client = storage.Client()
         bucket_name = os.getenv("GCS_BUCKET", "productionbucket101")

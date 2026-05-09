@@ -1897,3 +1897,652 @@ how can this data become an agile athlete' (App: alphonso_performance_mentor, Us
 2026-05-05 02:12:48,912 - adk_agent.agent - INFO - Memory: Searching for legacy facts: 'help me understand how i can become better with th...'
 2026-05-05 02:12:51,283 - adk_agent.agent - INFO - Memory: Found 3 legacy facts.
 2026-05-05 02:12:52,529 - adk_agent.agent - INFO - Pure Tool Flow: Signaling URI 'gs://productionbucket101/alphonso_performance_mentor/jeanjeffobuya07@gmail.com/session-1777935828771-s1uef83/How To Score 10 More Points Per Game.mp4/0' to media_scout
+2026-05-05 11:18:54,163 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 12:27:28,501 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 12:39:30,058 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 12:41:41,409 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:41:41,417 - adk_agent.agent - INFO - Memory: Master Fetch for 'look at this video and help me analyse ithttps://w...'
+2026-05-05 12:41:43,843 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-05 12:41:43,843 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-05 12:41:45,925 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-05 12:41:45,927 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: look at this video and help me analyse ithttps://w... ---
+2026-05-05 12:41:45,929 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 12:41:48,203 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:41:48,204 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-05 12:41:50,761 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:41:50,763 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-05 12:41:52,934 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:41:52,935 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: look at this video and help me analyse ithttps://w... ---
+2026-05-05 12:41:52,935 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-05 12:41:52,936 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-05 12:43:26,233 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:43:26,235 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: help me understand how the knicksedged out philly ... ---
+2026-05-05 12:43:26,236 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 12:43:28,703 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:43:28,705 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-05 12:43:31,174 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:43:31,174 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-05 12:43:33,658 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:43:33,658 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: help me understand how the knicksedged out philly ... ---
+2026-05-05 12:43:33,663 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-05 12:43:33,664 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-05 12:43:54,947 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 21.29s) >>>
+2026-05-05 12:43:54,959 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-05 12:43:54,978 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:43:54,980 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: help me understand how the knicksedged out philly ... ---
+2026-05-05 12:43:54,994 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-05 12:44:11,122 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 138.19s) >>>
+2026-05-05 12:44:11,123 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-05 12:44:11,125 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:44:11,125 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: look at this video and help me analyse ithttps://w... ---
+2026-05-05 12:44:11,125 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-05 12:44:15,253 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 20.28s) >>>
+2026-05-05 12:44:15,256 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:44:15,257 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: help me understand how the knicksedged out philly ... ---
+2026-05-05 12:44:15,259 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-05 12:44:40,309 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 29.18s) >>>
+2026-05-05 12:44:40,447 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:44:40,452 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: look at this video and help me analyse ithttps://w... ---
+2026-05-05 12:44:40,454 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-05 12:45:41,425 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 60.98s) >>>
+2026-05-05 12:45:41,426 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:45:41,427 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: look at this video and help me analyse ithttps://w... ---
+2026-05-05 12:45:41,430 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 12:45:44,570 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 89.31s) >>>
+2026-05-05 12:45:44,583 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 12:45:44,601 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: help me understand how the knicksedged out philly ... ---
+2026-05-05 12:45:44,610 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 12:46:36,217 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 54.79s) >>>
+2026-05-05 12:46:46,328 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 61.75s) >>>
+2026-05-05 13:02:17,997 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 13:22:54,414 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 13:23:35,745 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-05 13:29:08,892 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:29:08,895 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have the wolves just won on the road verses th... ---
+2026-05-05 13:29:08,900 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 13:29:12,210 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:29:12,210 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-05 13:29:15,816 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:29:15,820 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-05 13:29:19,132 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:29:19,133 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how have the wolves just won on the road verses th... ---
+2026-05-05 13:29:19,137 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-05 13:29:19,140 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-05 13:29:43,162 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 24.03s) >>>
+2026-05-05 13:29:43,168 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-05 13:29:43,183 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:29:43,198 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how have the wolves just won on the road verses th... ---
+2026-05-05 13:29:43,202 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-05 13:30:10,027 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 26.84s) >>>
+2026-05-05 13:30:10,029 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:30:10,030 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how have the wolves just won on the road verses th... ---
+2026-05-05 13:30:10,032 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-05 13:31:07,009 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 56.98s) >>>
+2026-05-05 13:31:07,011 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanjeffobuya07@gmail.com <<<
+2026-05-05 13:31:07,014 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have the wolves just won on the road verses th... ---
+2026-05-05 13:31:07,021 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-05 13:32:05,622 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 58.61s) >>>
+2026-05-06 00:06:42,850 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 00:08:41,965 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 00:13:44,749 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:13:44,750 - adk_agent.agent - INFO - Memory: Master Fetch for 'how did philly loose but a huge margin to the knic...'
+2026-05-06 00:13:48,739 - adk_agent.agent - INFO - Memory: Cached 2 memories.
+2026-05-06 00:13:48,740 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-06 00:13:56,855 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-06 00:13:56,856 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose but a huge margin to the knic... ---
+2026-05-06 00:13:56,858 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 00:14:13,259 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:14:13,261 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 00:14:16,243 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:14:16,245 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 00:14:20,090 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:14:20,095 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how did philly loose but a huge margin to the knic... ---
+2026-05-06 00:14:20,095 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 00:14:20,098 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 00:14:38,198 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 18.11s) >>>
+2026-05-06 00:14:38,199 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 00:14:38,200 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:14:38,201 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how did philly loose but a huge margin to the knic... ---
+2026-05-06 00:14:38,202 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 00:15:22,194 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 43.99s) >>>
+2026-05-06 00:15:22,197 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:15:22,197 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how did philly loose but a huge margin to the knic... ---
+2026-05-06 00:15:22,197 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 00:18:01,750 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 159.55s) >>>
+2026-05-06 00:18:01,755 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:18:01,756 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose but a huge margin to the knic... ---
+2026-05-06 00:18:01,757 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 00:19:25,874 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 84.12s) >>>
+2026-05-06 00:44:31,267 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 00:45:42,543 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:45:42,547 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have the spurs just lost to ant and the wolves... ---
+2026-05-06 00:45:42,555 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 00:45:49,600 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:45:49,602 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 00:45:53,682 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:45:53,682 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 00:45:58,447 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:45:58,447 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how have the spurs just lost to ant and the wolves... ---
+2026-05-06 00:45:58,449 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 00:45:58,449 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 00:46:17,341 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 18.89s) >>>
+2026-05-06 00:46:17,344 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 00:46:17,345 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:46:17,346 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how have the spurs just lost to ant and the wolves... ---
+2026-05-06 00:46:17,346 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 00:47:07,740 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 50.39s) >>>
+2026-05-06 00:47:07,742 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:47:07,743 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how have the spurs just lost to ant and the wolves... ---
+2026-05-06 00:47:07,745 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 00:49:43,464 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 155.72s) >>>
+2026-05-06 00:49:43,464 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 00:49:43,465 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have the spurs just lost to ant and the wolves... ---
+2026-05-06 00:49:43,466 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 00:50:45,749 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 62.29s) >>>
+2026-05-06 01:02:08,673 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:02:08,675 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:02:08,675 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 01:02:16,394 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:02:16,394 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 01:02:20,816 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:02:20,817 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 01:02:23,578 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:02:23,578 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:02:23,578 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 01:02:23,578 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 01:03:13,503 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 49.92s) >>>
+2026-05-06 01:03:13,505 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 01:03:13,507 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:03:13,509 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:03:13,511 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 01:03:58,335 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 44.83s) >>>
+2026-05-06 01:03:58,338 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:03:58,340 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:03:58,340 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 01:20:00,640 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 01:22:25,159 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:22:25,160 - adk_agent.agent - INFO - Memory: Master Fetch for 'i want to play like shai, how can i get there?...'
+2026-05-06 01:22:29,225 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-06 01:22:29,225 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-06 01:22:32,808 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-06 01:22:32,810 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:22:32,811 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 01:22:38,992 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:22:38,994 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 01:22:44,689 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:22:44,691 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 01:22:48,370 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:22:48,372 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:22:48,372 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 01:22:48,373 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 01:23:13,364 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 24.99s) >>>
+2026-05-06 01:23:13,364 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 01:23:13,365 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 01:23:13,366 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i want to play like shai, how can i get there?... ---
+2026-05-06 01:23:13,367 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 01:29:32,402 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 08:15:18,225 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:15:18,229 - adk_agent.agent - INFO - Memory: Master Fetch for 'i want to play like shai, how can i get there? i'm...'
+2026-05-06 08:15:20,849 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-06 08:15:20,850 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-06 08:15:22,352 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-06 08:15:22,355 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to play like shai, how can i get there? i'm... ---
+2026-05-06 08:15:22,357 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 08:15:24,986 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:15:24,986 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 08:15:27,340 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:15:27,341 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 08:15:30,092 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:15:30,095 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i want to play like shai, how can i get there? i'm... ---
+2026-05-06 08:15:30,097 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 08:15:30,098 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 08:15:43,606 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 13.51s) >>>
+2026-05-06 08:15:43,607 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 08:15:43,609 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:15:43,609 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i want to play like shai, how can i get there? i'm... ---
+2026-05-06 08:15:43,610 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 08:16:20,894 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 37.29s) >>>
+2026-05-06 08:16:20,896 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:16:20,897 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i want to play like shai, how can i get there? i'm... ---
+2026-05-06 08:16:20,897 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 08:18:41,488 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 140.59s) >>>
+2026-05-06 08:18:41,489 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 08:18:41,489 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i want to play like shai, how can i get there? i'm... ---
+2026-05-06 08:18:41,492 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 08:19:51,366 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 69.88s) >>>
+2026-05-06 11:57:55,139 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-06 12:02:31,768 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:02:31,772 - adk_agent.agent - INFO - Memory: Master Fetch for 'how have arsenal just beaten athletico madrid?...'
+2026-05-06 12:02:34,822 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-06 12:02:34,823 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-06 12:02:37,597 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-06 12:02:37,599 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have arsenal just beaten athletico madrid?... ---
+2026-05-06 12:02:37,602 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 12:02:40,397 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:02:40,400 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 12:02:40,409 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:02:40,411 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 12:02:40,414 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:02:40,423 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how have arsenal just beaten athletico madrid?... ---
+2026-05-06 12:02:40,430 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 12:02:40,435 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 12:02:48,439 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-06 12:02:55,553 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 15.14s) >>>
+2026-05-06 12:02:55,554 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 12:02:55,566 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:02:55,567 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how have arsenal just beaten athletico madrid?... ---
+2026-05-06 12:02:55,572 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 12:02:58,155 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-06 12:03:30,990 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 35.42s) >>>
+2026-05-06 12:03:30,993 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:03:30,994 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how have arsenal just beaten athletico madrid?... ---
+2026-05-06 12:03:31,000 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 12:03:33,614 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:03:50,551 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:04:04,232 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:04:21,426 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:04:42,732 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:05:10,019 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:05:24,860 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 113.87s) >>>
+2026-05-06 12:05:24,862 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:05:24,864 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how have arsenal just beaten athletico madrid?... ---
+2026-05-06 12:05:24,865 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 12:05:27,595 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-06 12:06:19,231 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 54.37s) >>>
+2026-05-06 12:09:38,703 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:09:38,706 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love how bruno fernandes play. how can i be like... ---
+2026-05-06 12:09:38,708 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 12:09:41,291 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:09:41,295 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-06 12:09:41,297 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:09:41,299 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-06 12:09:41,301 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:09:41,301 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i love how bruno fernandes play. how can i be like... ---
+2026-05-06 12:09:41,305 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-06 12:09:41,307 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-06 12:09:49,068 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-06 12:10:05,380 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 24.08s) >>>
+2026-05-06 12:10:05,383 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-06 12:10:05,391 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:10:05,391 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i love how bruno fernandes play. how can i be like... ---
+2026-05-06 12:10:05,399 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-06 12:10:07,876 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-06 12:10:30,182 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 24.79s) >>>
+2026-05-06 12:10:30,183 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:10:30,183 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i love how bruno fernandes play. how can i be like... ---
+2026-05-06 12:10:30,188 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-06 12:10:33,278 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:10:49,688 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:11:19,276 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-06 12:11:37,513 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 67.33s) >>>
+2026-05-06 12:11:37,514 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-06 12:11:37,516 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love how bruno fernandes play. how can i be like... ---
+2026-05-06 12:11:37,517 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-06 12:11:40,027 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-06 12:13:05,333 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 87.82s) >>>
+2026-05-08 04:35:18,591 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 04:41:13,438 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:41:13,440 - adk_agent.agent - INFO - Memory: Master Fetch for 'help me understand how lebron has been able to hav...'
+2026-05-08 04:41:16,088 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-08 04:41:16,088 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-08 04:41:18,106 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-08 04:41:18,109 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: help me understand how lebron has been able to hav... ---
+2026-05-08 04:41:18,111 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 04:41:20,915 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:41:20,919 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 04:41:20,932 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:41:20,936 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 04:41:20,939 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:41:20,943 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: help me understand how lebron has been able to hav... ---
+2026-05-08 04:41:20,950 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 04:41:20,950 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 04:41:28,597 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 04:41:37,301 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 16.36s) >>>
+2026-05-08 04:41:37,302 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 04:41:37,308 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:41:37,308 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: help me understand how lebron has been able to hav... ---
+2026-05-08 04:41:37,309 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 04:41:39,550 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 04:42:08,786 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 31.48s) >>>
+2026-05-08 04:42:08,787 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:42:08,788 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: help me understand how lebron has been able to hav... ---
+2026-05-08 04:42:08,789 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 04:42:13,785 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 04:42:38,777 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 04:43:33,321 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 84.53s) >>>
+2026-05-08 04:43:33,360 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:43:33,483 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: help me understand how lebron has been able to hav... ---
+2026-05-08 04:43:33,603 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 04:43:35,981 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 04:45:38,311 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 04:54:41,840 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 04:55:54,489 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 04:56:59,319 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:56:59,319 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love bruno fernandes , how can i play like him?... ---
+2026-05-08 04:56:59,323 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 04:57:01,802 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:57:01,804 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 04:57:01,808 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:57:01,809 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 04:57:01,817 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:57:01,820 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i love bruno fernandes , how can i play like him?... ---
+2026-05-08 04:57:01,833 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 04:57:01,852 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 04:57:09,322 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 04:57:35,803 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 33.99s) >>>
+2026-05-08 04:57:35,808 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 04:57:35,830 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:57:35,835 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i love bruno fernandes , how can i play like him?... ---
+2026-05-08 04:57:35,837 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 04:57:38,780 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 04:58:22,135 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 46.30s) >>>
+2026-05-08 04:58:22,165 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:58:22,182 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i love bruno fernandes , how can i play like him?... ---
+2026-05-08 04:58:22,259 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 04:58:25,666 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 04:58:56,715 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 04:59:28,536 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 04:59:47,673 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 85.51s) >>>
+2026-05-08 04:59:47,676 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 04:59:47,678 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love bruno fernandes , how can i play like him?... ---
+2026-05-08 04:59:47,679 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 04:59:50,148 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:01:11,864 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 84.19s) >>>
+2026-05-08 05:03:19,948 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:19,949 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: where are the youtube vids... ---
+2026-05-08 05:03:19,951 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:03:22,415 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:22,418 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 05:03:22,419 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:22,421 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 05:03:22,422 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:22,425 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: where are the youtube vids... ---
+2026-05-08 05:03:22,428 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 05:03:22,431 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 05:03:29,645 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 05:03:40,423 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 18.00s) >>>
+2026-05-08 05:03:40,423 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 05:03:40,440 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:40,441 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: where are the youtube vids... ---
+2026-05-08 05:03:40,457 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 05:03:42,855 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 05:03:52,486 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 12.05s) >>>
+2026-05-08 05:03:52,488 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:03:52,489 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: where are the youtube vids... ---
+2026-05-08 05:03:52,489 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 05:03:54,886 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:04:04,638 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 12.15s) >>>
+2026-05-08 05:04:04,641 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:04:04,644 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: where are the youtube vids... ---
+2026-05-08 05:04:04,646 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:04:07,114 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:04:59,065 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 54.42s) >>>
+2026-05-08 05:08:44,039 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:08:44,041 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:08:44,042 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:08:46,502 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:08:46,508 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 05:08:46,508 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:08:46,513 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 05:08:46,516 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:08:46,522 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:08:46,523 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 05:08:46,523 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 05:08:54,262 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 05:09:12,971 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 26.45s) >>>
+2026-05-08 05:09:12,971 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 05:09:12,984 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:09:12,987 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:09:12,989 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 05:09:15,935 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 05:09:35,524 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 22.54s) >>>
+2026-05-08 05:09:35,530 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:09:35,533 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:09:35,537 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 05:09:40,034 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:09:54,829 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 19.30s) >>>
+2026-05-08 05:09:54,831 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:09:54,832 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:09:54,834 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:09:57,391 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:10:55,606 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 60.77s) >>>
+2026-05-08 05:13:53,958 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 05:14:12,035 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:12,038 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:14:12,041 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:14:14,482 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:14,488 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 05:14:14,493 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:14,495 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 05:14:14,497 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:14,499 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:14:14,502 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 05:14:14,503 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 05:14:22,021 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 05:14:38,000 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 23.50s) >>>
+2026-05-08 05:14:38,006 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 05:14:38,026 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:38,026 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:14:38,032 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 05:14:40,432 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 05:14:51,793 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 13.77s) >>>
+2026-05-08 05:14:51,795 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:14:51,796 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:14:51,798 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 05:14:55,153 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:15:05,611 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 13.82s) >>>
+2026-05-08 05:15:05,611 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:15:05,613 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how did philly loose game two to the knicks and wh... ---
+2026-05-08 05:15:05,614 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:15:07,956 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:15:42,406 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 36.79s) >>>
+2026-05-08 05:20:31,015 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:20:31,015 - adk_agent.agent - INFO - Memory: Master Fetch for 'i love ryn cherki and just like the way he's so po...'
+2026-05-08 05:20:33,605 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-08 05:20:33,607 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-08 05:20:35,859 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-08 05:20:35,862 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love ryn cherki and just like the way he's so po... ---
+2026-05-08 05:20:35,875 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:20:38,308 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:20:38,311 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 05:20:38,313 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:20:38,314 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 05:20:38,317 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:20:38,317 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: i love ryn cherki and just like the way he's so po... ---
+2026-05-08 05:20:38,317 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 05:20:38,322 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 05:20:45,775 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 05:20:51,472 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 13.15s) >>>
+2026-05-08 05:20:51,473 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 05:20:51,486 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:20:51,488 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: i love ryn cherki and just like the way he's so po... ---
+2026-05-08 05:20:51,488 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 05:20:55,035 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 05:21:29,738 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 38.25s) >>>
+2026-05-08 05:21:29,740 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:21:29,742 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: i love ryn cherki and just like the way he's so po... ---
+2026-05-08 05:21:29,744 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 05:21:32,152 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:21:47,357 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:22:00,210 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:22:13,185 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:22:24,178 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:22:39,241 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:22:52,692 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:23:09,543 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:23:35,378 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 125.64s) >>>
+2026-05-08 05:23:35,380 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:23:35,382 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: i love ryn cherki and just like the way he's so po... ---
+2026-05-08 05:23:35,382 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:23:37,828 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:24:43,738 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 68.36s) >>>
+2026-05-08 05:44:58,052 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 05:46:02,640 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 05:46:55,292 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 05:49:26,220 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:49:26,224 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how can play like bruno fernandes?... ---
+2026-05-08 05:49:26,225 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:49:29,132 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:49:29,134 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 05:49:29,144 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:49:29,148 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 05:49:29,152 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:49:29,152 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how can play like bruno fernandes?... ---
+2026-05-08 05:49:29,162 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 05:49:29,163 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 05:49:37,284 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 05:50:18,218 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 49.07s) >>>
+2026-05-08 05:50:18,219 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 05:50:18,231 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:50:18,235 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how can play like bruno fernandes?... ---
+2026-05-08 05:50:18,235 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 05:50:20,952 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 05:50:56,188 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 37.96s) >>>
+2026-05-08 05:50:56,188 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:50:56,193 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how can play like bruno fernandes?... ---
+2026-05-08 05:50:56,195 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 05:50:59,072 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:51:16,832 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:51:32,665 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:51:45,774 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:51:57,341 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:52:09,403 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:52:21,109 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:52:35,264 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 05:52:59,681 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 123.49s) >>>
+2026-05-08 05:52:59,682 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 05:52:59,682 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how can play like bruno fernandes?... ---
+2026-05-08 05:52:59,682 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 05:53:02,580 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 05:54:13,315 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 73.63s) >>>
+2026-05-08 12:00:39,807 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 12:01:32,892 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 12:04:44,668 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:44,668 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:04:44,674 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 12:04:48,427 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:48,432 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 12:04:48,447 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:48,460 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 12:04:48,465 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:48,493 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:04:48,507 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 12:04:48,533 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 12:04:51,137 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:51,138 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:04:51,140 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=0J-okmR9jRU
+2026-05-08 12:04:51,188 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 12:04:54,323 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:54,323 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 12:04:54,331 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:54,334 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 12:04:54,336 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:04:54,338 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:04:54,340 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=0J-okmR9jRU
+2026-05-08 12:04:54,340 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 12:04:54,340 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 12:04:57,619 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 12:05:04,398 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 12:05:19,608 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 31.14s) >>>
+2026-05-08 12:05:19,608 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 12:05:19,618 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:05:19,620 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:05:19,625 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 12:05:22,597 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 12:05:42,978 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 23.35s) >>>
+2026-05-08 12:05:42,980 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:05:42,981 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:05:42,982 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 12:05:47,306 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:06:04,155 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 21.18s) >>>
+2026-05-08 12:06:04,161 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:06:04,167 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:06:04,178 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 12:06:07,781 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 12:07:16,225 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 72.06s) >>>
+2026-05-08 12:32:49,310 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 12:44:05,188 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 12:45:11,378 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:45:11,380 - adk_agent.agent - INFO - Memory: Master Fetch for 'howcan this video about bruno help me gain insight...'
+2026-05-08 12:45:14,339 - adk_agent.agent - INFO - Memory: Cached 3 memories.
+2026-05-08 12:45:14,339 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-08 12:45:16,485 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-08 12:45:16,488 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:45:16,488 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=mW2akPVpVfg
+2026-05-08 12:45:16,495 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 12:45:20,119 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:45:20,134 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 12:45:20,197 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:45:20,214 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 12:45:20,233 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:45:20,244 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:45:20,280 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=mW2akPVpVfg
+2026-05-08 12:45:20,409 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 12:45:20,542 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 12:45:29,135 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 12:47:26,016 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 125.78s) >>>
+2026-05-08 12:47:26,018 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 12:47:26,037 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:47:26,043 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:47:26,045 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=mW2akPVpVfg
+2026-05-08 12:47:26,056 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 12:47:30,987 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 12:48:00,758 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 34.72s) >>>
+2026-05-08 12:48:00,763 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:48:00,764 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:48:00,770 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=mW2akPVpVfg
+2026-05-08 12:48:00,778 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 12:48:14,682 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:48:58,965 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:49:19,805 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:49:35,626 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:49:47,960 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:49:59,026 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:50:10,224 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:50:25,288 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 12:50:48,882 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 168.12s) >>>
+2026-05-08 12:50:48,885 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya1@gmail.com <<<
+2026-05-08 12:50:48,885 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: howcan this video about bruno help me gain insight... ---
+2026-05-08 12:50:48,888 - adk_agent.agent - INFO - Visual Sentry: Detected YouTube link for this turn: https://www.youtube.com/watch?v=mW2akPVpVfg
+2026-05-08 12:50:48,890 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 12:50:51,909 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 12:51:33,721 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 44.84s) >>>
+2026-05-08 16:42:54,865 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101
+2026-05-08 17:04:40,602 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:04:40,605 - adk_agent.agent - INFO - Memory: Master Fetch for 'how can i get athlete strong and work on my hip st...'
+2026-05-08 17:04:43,766 - adk_agent.agent - INFO - Artifacts: Master Fetching keys from GCS...
+2026-05-08 17:04:45,939 - adk_agent.agent - INFO - Artifacts: Cached 0 keys.
+2026-05-08 17:04:45,941 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how can i get athlete strong and work on my hip st... ---
+2026-05-08 17:04:45,946 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 17:04:49,126 - adk_agent.agent - INFO - >>> [STOPWATCH] agent0 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:04:49,128 - adk_agent.agent - INFO - No artifacts found in cache for agent0. Skipping to Researcher.
+2026-05-08 17:04:49,142 - adk_agent.agent - INFO - >>> [STOPWATCH] analytics_agent Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:04:49,145 - adk_agent.agent - INFO - No artifacts found in cache for analytics_agent. Skipping to Researcher.
+2026-05-08 17:04:49,147 - adk_agent.agent - INFO - >>> [STOPWATCH] media_scout Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:04:49,147 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: media_scout | Tier: ELITE | Msg: how can i get athlete strong and work on my hip st... ---
+2026-05-08 17:04:49,155 - adk_agent.agent - INFO - Gatekeeper Ingestion Scan: 0 cached keys found.
+2026-05-08 17:04:49,156 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for media_scout (ELITE).
+2026-05-08 17:04:59,439 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent media_scout
+2026-05-08 17:05:26,650 - adk_agent.agent - INFO - <<< [STOPWATCH] media_scout Turn Finish (Duration: 37.50s) >>>
+2026-05-08 17:05:26,651 - adk_agent.agent - INFO - Bridge: Synced raw media_insights to dedicated state.
+2026-05-08 17:05:26,660 - adk_agent.agent - INFO - >>> [STOPWATCH] agent1 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:05:26,661 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent1 | Tier: ELITE | Msg: how can i get athlete strong and work on my hip st... ---
+2026-05-08 17:05:26,667 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent1 (ELITE).
+2026-05-08 17:05:29,771 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent1
+2026-05-08 17:05:59,747 - adk_agent.agent - INFO - <<< [STOPWATCH] agent1 Turn Finish (Duration: 33.09s) >>>
+2026-05-08 17:05:59,747 - adk_agent.agent - INFO - >>> [STOPWATCH] agent2 Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:05:59,756 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: agent2 | Tier: ELITE | Msg: how can i get athlete strong and work on my hip st... ---
+2026-05-08 17:05:59,759 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for agent2 (ELITE).
+2026-05-08 17:06:03,077 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:06:27,218 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:06:43,994 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:07:03,545 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:07:39,495 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:08:00,982 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent agent2
+2026-05-08 17:08:28,544 - adk_agent.agent - INFO - <<< [STOPWATCH] agent2 Turn Finish (Duration: 148.80s) >>>
+2026-05-08 17:08:28,547 - adk_agent.agent - INFO - >>> [STOPWATCH] alphonso Turn Start | User: jeanobuya5@gmail.com <<<
+2026-05-08 17:08:28,547 - adk_agent.agent - INFO - --- [GATEKEEPER] Auth Detected: alphonso | Tier: ELITE | Msg: how can i get athlete strong and work on my hip st... ---
+2026-05-08 17:08:28,551 - adk_agent.agent - INFO - Gatekeeper Enforcement: Permission Granted for alphonso (ELITE).
+2026-05-08 17:08:33,886 - adk_agent.agent - INFO - Targeted Context: Minimal context for worker agent alphonso
+2026-05-08 17:09:16,555 - adk_agent.agent - INFO - <<< [STOPWATCH] alphonso Turn Finish (Duration: 48.01s) >>>
+2026-05-08 18:00:47,891 - adk_agent.agent - INFO - GCS Artifact Service initialized with bucket: productionbucket101

@@ -7,7 +7,7 @@ import ProfileForm from './components/ProfileForm';
 import AuthModal from './components/AuthModal';
 import PricingPage from './pages/PricingPage';
 import CheckoutPage from './pages/CheckoutPage';
-import { updateProfile, getUserDetails, logout } from '../services/api';
+import { updateProfile, getUserDetails, logout, setAccessToken, refreshAccessToken } from '../services/api';
 import { RingLoader } from 'react-spinners';
 
 function App() {
@@ -30,30 +30,34 @@ function App() {
 
   useEffect(() => {
     const checkUserAndSkip = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const { user } = await getUserDetails();
+      try {
+        // Step 1: Silent Refresh - Attempt to get a fresh Access Token from the cookie
+        const { token } = await refreshAccessToken();
+        setAccessToken(token);
 
-          // Always hydrate local state from DB on mount/reload
-          setUserData({
-            username: user.username,
-            height: user.height,
-            weight: user.weight,
-            sports: user.primarySports,
-            tier: user.tier || (user.isPro ? 'elite' : 'rookie')
-          });
+        // Step 2: Fetch User Details with the new token
+        const { user } = await getUserDetails();
 
-          // SMART SKIP: Only redirect to chat if user is fully onboarded AND currently at the root
-          if (user.primarySports && user.primarySports.length > 0 && user.height && location.pathname === '/') {
-            navigate('/chat', { replace: true });
-          }
-        } catch (err) {
-          console.error("Auth session expired or invalid.");
-          logout();
+        // Always hydrate local state from DB on mount/reload
+        setUserData({
+          username: user.username,
+          height: user.height,
+          weight: user.weight,
+          sports: user.primarySports,
+          tier: user.tier || (user.isPro ? 'elite' : 'rookie')
+        });
+
+        // SMART SKIP: Only redirect to chat if user is fully onboarded AND currently at the root
+        if (user.primarySports && user.primarySports.length > 0 && user.height && location.pathname === '/') {
+          navigate('/chat', { replace: true });
         }
+      } catch (err) {
+        console.warn("No active session found or refresh failed.");
+        // If it fails, we just don't log them in. 
+        // No need to call logout() as it might trigger a loop or clear valid local UI data
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkUserAndSkip();

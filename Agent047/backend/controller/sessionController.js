@@ -1,6 +1,7 @@
 import Session from '../model/session.js';
 import Message from '../model/message.js';
 import { getSignedUrl } from '../utils/gcs.js';
+import { getHistory, pushMessage, deleteSessionCache, bulkPushMessages, getUserSessionList, setUserSessionList } from '../cache/query.js';
 
 /**
  * Returns a list of all chat sessions belonging to the logged-in athlete.
@@ -9,9 +10,22 @@ export const listSessions = async (req, res) => {
     try {
         const { uid } = req.user;
 
-        // Find sessions for this user, sorted by the most recently updated
+        // 1. READ-THROUGH CACHE: Check Redis first
+        const cachedList = await getUserSessionList(uid);
+        if (cachedList) {
+            console.log(`[Elite Cache] Session List Hit for ${uid}`);
+            return res.status(200).json(cachedList);
+        }
+
+        // 2. CACHE MISS: Fetch from MongoDB
+        console.log(`[Elite Cache] Session List Miss. Fetching from DB...`);
         const sessions = await Session.find({ uid })
             .sort({ updatedAt: -1 });
+
+        // 3. HYDRATION: Prime Redis
+        if (sessions.length > 0) {
+            await setUserSessionList(uid, sessions);
+        }
 
         res.status(200).json(sessions);
 
@@ -38,6 +52,9 @@ export const deleteSession = async (req, res) => {
         // Cascade delete messages
         await Message.deleteMany({ sessionId: id, uid });
 
+        // EXPLICIT INVALIDATION: Purge from Redis RAM (including list)
+        await deleteSessionCache(id, uid);
+
         res.status(200).json({ message: "Session deleted successfully." });
     } catch (error) {
         console.error("Error deleting session:", error.message);
@@ -50,34 +67,45 @@ export const deleteSession = async (req, res) => {
  */
 export const getSessionMessages = async (req, res) => {
     try {
-        const { id } = req.params; // The sessionId
+        const { id } = req.params;
         const { uid } = req.user;
 
+        // 1. READ-THROUGH CACHE: Check Redis first
+        const cachedMessages = await getHistory(id);
+        if (cachedMessages) {
+            console.log(`[Elite Cache] Hot-Read for session ${id}`);
+            return res.status(200).json(cachedMessages);
+        }
+
+        // 2. CACHE MISS: Fallback to MongoDB
+        console.log(`[Elite Cache] Cache Miss for session ${id}. Fetching from DB...`);
         const messages = await Message.find({ sessionId: id, uid })
             .sort({ timestamp: 1 });
 
-        // DYNAMIC SIGNING: Regenerate expired GCS URLs for history
+        // DYNAMIC SIGNING: Regenerate expired GCS URLs
         const hydratedMessages = await Promise.all(messages.map(async (msg) => {
+            const msgObj = msg.toObject ? msg.toObject() : msg;
             if (msg.images && msg.images.length > 0) {
                 const signedImages = await Promise.all(msg.images.map(async (img) => {
                     if (img.filename) {
                         try {
                             const url = await getSignedUrl(id, img.filename);
-                            // Return a plain object with the fresh URL
-                            const imgObj = img.toObject ? img.toObject() : img;
-                            return { ...imgObj, url };
+                            return { ...img, url };
                         } catch (e) {
-                            console.error(`Failed to re-sign ${img.filename}:`, e);
                             return img;
                         }
                     }
                     return img;
                 }));
-                const msgObj = msg.toObject ? msg.toObject() : msg;
                 return { ...msgObj, images: signedImages };
             }
-            return msg;
+            return msgObj;
         }));
+
+        // 3. HYDRATION: Prime Redis for the next request (Atomic Batch)
+        if (hydratedMessages.length > 0) {
+            await bulkPushMessages(id, hydratedMessages);
+        }
 
         res.status(200).json(hydratedMessages);
     } catch (error) {

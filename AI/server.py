@@ -58,8 +58,9 @@ def configure_bucket_cors():
     except Exception as e:
         logger.error(f"🚨 Auto-CORS Failure: {e}. Ensure Service Account has Bucket Admin roles.")
 
-# Run Auto-Configuration
-configure_bucket_cors()
+# Run Auto-Configuration (Gated for Production Safety)
+if os.getenv("CORS_ENABLED") == "true":
+    configure_bucket_cors()
 
 # Import the pre-configured app and services from our agent module
 from adk_agent.agent import alphonso_app, memory_service, artifact_service, session_service
@@ -70,7 +71,7 @@ app = FastAPI(title="Agent Microservice", description="FastAPI Server for our AI
 # -----------------------------------------------------------------------------
 # STAGE 2: THE LOCK ON THE BIKE (SECURITY)
 # -----------------------------------------------------------------------------
-INTERNAL_API_KEY = "super-secret-key-for-node-only" 
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 api_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=False)
 
 def verify_internal_node_service(api_key: str = Security(api_key_header)):
@@ -120,47 +121,60 @@ async def chat_endpoint(request: ChatRequest):
     # We wrap everything inside an async generator
     async def event_generator():
         try:
-      
-            
-            # 1. Ensure the session exists in ADK's session service
-            existing_sessions_response = await session_service.list_sessions(app_name=alphonso_app.name, user_id=user_id)
-            if not any(s.id == session_id for s in existing_sessions_response.sessions):
-                await session_service.create_session(
+            # 1. Ensure the session exists (L1.5 Fix)
+            active_session = await session_service.get_session(
+                app_name=alphonso_app.name,
+                user_id=user_id,
+                session_id=session_id
+            )
+            if not active_session:
+                active_session = await session_service.create_session(
                     app_name=alphonso_app.name,
                     user_id=user_id,
                     session_id=session_id
                 )
             
-            # 1b. Inject the active_sport and athlete_bio into session state if provided
-            if request.active_sport or request.athlete_bio:
-                active_session = await session_service.get_session(
-                    app_name=alphonso_app.name,
-                    user_id=user_id,
-                    session_id=session_id
-                )
-                active_session.state["athlete_tier"] = request.tier.upper()
-
-                if request.active_sport:
-                    active_session.state["active_sport"] = request.active_sport
-                if request.athlete_bio:
-                    active_session.state["athlete_bio"] = request.athlete_bio
+            # 1b. Inject state variables
+            active_session.state["athlete_tier"] = request.tier.upper()
+            if request.active_sport:
+                active_session.state["active_sport"] = request.active_sport
+            if request.athlete_bio:
+                active_session.state["athlete_bio"] = request.athlete_bio
             
             active_session.state["turn_context_loaded"] = False
             
             # 2. Run the agent with native streaming (Asynchronous)
             auth_stamped_message = f"[SYSTEM_AUTH: TIER={request.tier.upper()}]\n{request.message}"
-            print(f"DEBUG: [INCOMING SIGNAL] Message: {request.message[:50]}... | Tier: {request.tier}")
-            print(f"Executing Agent for User: {user_id}, Session: {session_id}")
+            logger.info(f"[INCOMING SIGNAL] Message: {request.message[:50]}... | Tier: {request.tier}")
+            logger.info(f"Executing Agent for User: {user_id}, Session: {session_id}")
             
             run_config = RunConfig(streaming_mode=StreamingMode.SSE)
             
             final_text = ""
+            active_agent = None
+            agent_status_map = {
+                "agent0": " Extracting performance stats from your data...",
+                "analytics_agent": "Crunching analytics and plotting trends...",
+                "media_scout": "Parsing video  for tactical footage...",
+                "agent1": "Synthesizing tactical sports research...",
+                "agent2": "Building your custom video curriculum...",
+                "alphonso": "Alphonso is finalizing your performance audit..."
+            }
+
             async for event in runner.run_async(
                 user_id=user_id,
                 session_id=session_id,
                 new_message=types.Content(parts=[types.Part(text=auth_stamped_message)]),
                 run_config=run_config
             ):
+                # 📢 GRANULAR STREAMING (Layer 4)
+                # Detect which agent is working and update the frontend
+                current_author = getattr(event, 'author', None)
+                if current_author != active_agent and current_author in agent_status_map:
+                    active_agent = current_author
+                    status_msg = agent_status_map[current_author]
+                    yield f"data: {json.dumps({'type': 'status', 'status': 'WORKING', 'message': status_msg})}\n\n"
+
                 if hasattr(event, 'content') and event.content:
                     if event.author == 'alphonso':
                         for part in event.content.parts:
@@ -169,9 +183,6 @@ async def chat_endpoint(request: ChatRequest):
                                 
                                 # ADK native streaming yields individual chunks
                                 if event.partial:
-                                    # Log agent transition for visibility
-                                    if event.author:
-                                        logger.info(f"--- [ADK FLOW] Agent Active: {event.author} ---")
                                     
                                     yield f"data: {json.dumps({'type': 'content', 'chunk': chunk})}\n\n"
                                     final_text += chunk

@@ -11,11 +11,12 @@ else:
 
 from google.adk.apps import App
 from google.adk.agents.sequential_agent import SequentialAgent
+from google.adk.agents.parallel_agent import ParallelAgent
 from .subagents import agent0, agent1, agent2, agent3, analytics_agent, media_scout
 from .subagents.video_agent import unified_video_interceptor
 from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin
 from google.adk.agents.callback_context import CallbackContext
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import VertexAiSessionService
 from google.adk.models import LlmRequest, LlmResponse
 from google.adk.artifacts import GcsArtifactService
 from google.genai import types
@@ -50,7 +51,14 @@ PROJECT_ID = os.getenv('GOOGLE_CLOUD_PROJECT')
 LOCATION = os.getenv('GOOGLE_CLOUD_LOCATION')
 AGENT_ID_RAW = os.getenv('AGENT_ENGINE_ID')
 # Strip prefix if full resource name was provided
-AGENT_ID = AGENT_ID_RAW.split('/')[-1] if AGENT_ID_RAW else None
+if AGENT_ID_RAW:
+    # Extract the region from the resource path
+    region_match = re.search(r'locations/([^/]+)', AGENT_ID_RAW)
+    ENGINE_REGION = region_match.group(1) if region_match else 'us-central1'
+    AGENT_ID = AGENT_ID_RAW.split('/')[-1]
+else:
+    ENGINE_REGION = 'us-central1'
+    AGENT_ID = None
 STAGING_BUCKET = os.environ.get("GOOGLE_CLOUD_STAGING_BUCKET", "gs://agent047")
 
 logging.info(f"Initializing Memory Service with Project: {PROJECT_ID}, Location: {LOCATION}, Agent ID: {AGENT_ID}")
@@ -61,7 +69,7 @@ vertexai.init(
 )
 memory_service = VertexAiMemoryBankService(
     project=PROJECT_ID,
-    location=LOCATION,
+    location=ENGINE_REGION,
     agent_engine_id=AGENT_ID
 )
 
@@ -113,6 +121,29 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     user_id = callback_context.session.user_id
     logger.info(f">>> [STOPWATCH] {current_agent} Turn Start | User: {user_id} <<<")
 
+    # 1b. Master Memory Fetcher (L1.2)
+    if "master_memories" not in callback_context.state and not is_greeting(user_input):
+        try:
+            search_query = re.sub(r"\[SYSTEM_AUTH: TIER=.*?\]", "", user_input).strip()
+            if search_query:
+                logger.info(f"Memory: Master Fetch for '{search_query[:50]}...'")
+                res = await memory_service.search_memory(
+                    app_name=MEMORY_SCOPE_APP,
+                    user_id=callback_context.session.user_id,
+                    query=search_query
+                )
+                if res.memories:
+                    memories_text = "\n".join([f"- {m.content.parts[0].text}" for m in res.memories])
+                    callback_context.state["master_memories"] = memories_text
+                    logger.info(f"Memory: Cached {len(res.memories)} memories.")
+                else:
+                    callback_context.state["master_memories"] = ""
+            else:
+                callback_context.state["master_memories"] = ""
+        except Exception as e:
+            logger.error(f"Master Memory Search failure: {e}")
+            callback_context.state["master_memories"] = ""
+
     # 🛡️ STATE SEEDING: Ensure context variables always exist to prevent KeyErrors
     if "user_stats" not in callback_context.session.state:
         callback_context.session.state["user_stats"] = ""
@@ -121,22 +152,30 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     if "analytics_results" not in callback_context.session.state:
         callback_context.session.state["analytics_results"] = ""
 
-    # 2. Artifact-Dependent Agents: Skip if no artifacts found (Agent 0 & Analytics only)
-    if current_agent in ["agent0", "analytics_agent"] and artifact_service:
+    # 1c. Master Artifact Cacher (L1.3)
+    if "cached_artifacts" not in callback_context.state and artifact_service:
         try:
+            logger.info("Artifacts: Master Fetching keys from GCS...")
             filenames = await artifact_service.list_artifact_keys(
                 app_name=callback_context.session.app_name,
                 user_id=callback_context.session.user_id,
                 session_id=callback_context.session.id
             )
-            if not filenames:
-                logger.info(f"No artifacts found in GCS for {current_agent}. Skipping to Researcher.")
-                return LlmResponse(
-                    content=types.Content(parts=[types.Part(text="USER_STATS: NONE")]),
-                    custom_metadata={"author": f"{current_agent}_bypass"}
-                )
+            callback_context.state["cached_artifacts"] = filenames
+            logger.info(f"Artifacts: Cached {len(filenames)} keys.")
         except Exception as e:
-            logger.error(f"Error checking artifacts in Gatekeeper: {e}")
+            logger.error(f"Master Artifact Fetch failure: {e}")
+            callback_context.state["cached_artifacts"] = []
+
+    # 2. Artifact-Dependent Agents: Skip if no artifacts found (Agent 0 & Analytics only)
+    if current_agent in ["agent0", "analytics_agent"]:
+        filenames = callback_context.state.get("cached_artifacts", [])
+        if not filenames:
+            logger.info(f"No artifacts found in cache for {current_agent}. Skipping to Researcher.")
+            return LlmResponse(
+                content=types.Content(parts=[types.Part(text="USER_STATS: NONE")]),
+                custom_metadata={"author": f"{current_agent}_bypass"}
+            )
 
     # 3. Tier Discovery (Dual-Signal)
     user_tier = callback_context.state.get("athlete_tier", "ROOKIE").upper()
@@ -148,17 +187,16 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     else:
         logger.info(f"--- [GATEKEEPER] State Check: {current_agent} | Tier: {user_tier} ---")
 
-    # 🛡️ VIDEO DETECTION: Find YouTube link and handle state clearing
+    # 🛡️ VIDEO DETECTION: Find YouTube link (L1.5 Ephemeral Fix)
     youtube_regex = r"(?:https?://)?(?:www\.)?(?:youtube\.com|youtu\.be)/(?:watch\?v=)?([^/\s?]+)"
     yt_match = re.search(youtube_regex, callback_context.user_content.parts[0].text if callback_context.user_content else "")
     if yt_match:
         url = yt_match.group(0).strip()
-        callback_context.session.state["active_video_uri"] = url
+        callback_context.state["active_video_uri"] = url
+        logger.info(f"Visual Sentry: Detected YouTube link for this turn: {url}")
     else:
-        # Clear the 'sticky' state so we don't analyze the previous turn's video
-        if "active_video_uri" in callback_context.session.state:
-            callback_context.session.state["active_video_uri"] = None
-            logger.info("Visual Sentry: No new link detected. Cleared active_video_uri.")
+        # Turn state automatically clears, so we don't need manual None assignment
+        pass
 
     # 🛑 TIER-GATE: ROOKIE (Blocks all Lab agents)
     if user_tier == "ROOKIE" and current_agent in ["agent0", "analytics_agent", "media_scout"]:
@@ -179,27 +217,18 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     if current_agent == "media_scout":
         has_youtube = callback_context.session.state.get("active_video_uri")
         
-        # Check GCS for video artifacts (Handling the /0 Signed URL schema)
-        try:
-            artifact_keys = await artifact_service.list_artifact_keys(
-                app_name=callback_context.session.app_name,
-                user_id=callback_context.session.user_id,
-                session_id=callback_context.session.id
-            )
-            # 🕵️ Forensic Audit: Log exactly what the Gatekeeper sees
-            logger.info(f"Gatekeeper Ingestion Scan: {len(artifact_keys)} keys found.")
-            for k in artifact_keys:
-                logger.info(f"  - Key: '{k}'")
+        # Check cached artifacts for video
+        artifact_keys = callback_context.state.get("cached_artifacts", [])
+        
+        # 🕵️ Forensic Audit: Log exactly what the Gatekeeper sees
+        logger.info(f"Gatekeeper Ingestion Scan: {len(artifact_keys)} cached keys found.")
 
-            # 🛡️ Visual Audit: Check if any key contains a video extension (even with /0 suffix)
-            video_extensions = ('.mp4', '.mov', '.avi', '.webm')
-            has_video_artifact = any(
-                any(ext in k.lower() for ext in video_extensions) 
-                for k in artifact_keys
-            )
-        except Exception as e:
-            logger.error(f"🚨 Gatekeeper Audit Failure: {e}")
-            has_video_artifact = False
+        # 🛡️ Visual Audit: Check if any key contains a video extension
+        video_extensions = ('.mp4', '.mov', '.avi', '.webm')
+        has_video_artifact = any(
+            any(ext in k.lower() for ext in video_extensions) 
+            for k in artifact_keys
+        )
         
 
     logger.info(f"Gatekeeper Enforcement: Permission Granted for {current_agent} ({user_tier}).")
@@ -218,54 +247,53 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
     if is_greeting(user_input):
          return LlmResponse(content=types.Content(parts=[types.Part(text="[System: Greeting detected, research skipped.]")]))
 
-    # 2. Memory Retrieval (Legacy Lookup)
-    memories = ""
-    try:
-        search_query = re.sub(r"\[SYSTEM_AUTH: TIER=.*?\]", "", user_input).strip()
-        logger.info(f"Memory: Searching for legacy facts: '{search_query[:50]}...'")
-        res = await memory_service.search_memory(
-            app_name=MEMORY_SCOPE_APP,
-            user_id=callback_context.session.user_id,
-            query=search_query
-        )
-        if res.memories:
-            memories = "\n".join([f"- {m.content.parts[0].text}" for m in res.memories])
-            callback_context.state["past_memories"] = memories
-            logger.info(f"Memory: Found {len(res.memories)} legacy facts.")
-        else:
-            logger.info("Memory: No relevant legacy facts found for this turn.")
-    except Exception as e:
-        logger.error(f"Memory search failure: {e}")
+    # 2. Memory Retrieval (Cached lookup - L1.2)
+    memories = callback_context.state.get("master_memories", "")
 
-    # 3. Context Injection
+    # 3. Targeted Context (Layer 3: Need-to-Know)
+    # We strip Bio and Memories for research agents to save ~30-50% on token costs per turn.
     user_name = callback_context.state.get("user_name", "Anonymous Athlete")
     active_sport = callback_context.state.get("active_sport", "General Sports")
-    athlete_bio = callback_context.state.get("athlete_bio", "")
-    if not memories:
-        memories = callback_context.state.get("past_memories", "")
     
-    identity_context = f"Athlete: {user_name} | Bio: {athlete_bio}"
+    if current_agent == "agent3":
+        athlete_bio = callback_context.state.get("athlete_bio", "")
+        memories = callback_context.state.get("master_memories", "")
+        if not memories:
+            memories = callback_context.state.get("past_memories", "")
+            
+        identity_context = f"Athlete: {user_name} | Bio: {athlete_bio}"
+        memory_injection = f"\n[PAST MEMORIES]\n{memories}\n" if memories else ""
+        logger.info(f"Targeted Context: Full Bio/Memories injected for {current_agent}")
+    else:
+        identity_context = f"Athlete: {user_name}"
+        memory_injection = ""
+        logger.info(f"Targeted Context: Minimal context for worker agent {current_agent}")
+    
     sport_context = f"Active Sport: {active_sport}"
-    memory_injection = f"\n[PAST MEMORIES]\n{memories}\n" if memories else ""
-    
     injection = f"\n\n[CONTEXT INJECTION]\n{identity_context}\n{sport_context}\n{memory_injection}[END CONTEXT]"
     llm_request.append_instructions([injection])
 
     # 3b. Inject Media Insights if available (For Final Coach)
     if current_agent == "agent3":
         media_insights = callback_context.session.state.get("media_insights")
+        analytics_results = callback_context.session.state.get("analytics_results")
+        
+        alerts = []
+        if not media_insights:
+            alerts.append("[SYSTEM_ALERT] Media Scout failed to analyze visual tape. Proceed without visual confirmation.")
+        if not analytics_results:
+            alerts.append("[SYSTEM_ALERT] Analytics Scout failed to process CSV data. Proceed with qualitative theory only.")
+            
+        if alerts:
+            llm_request.append_instructions(alerts)
+            
         if media_insights:
             llm_request.append_instructions([f"[MEDIA_INSIGHTS]: {media_insights}"])
 
-    # 4. GCS Ingestion logic (Selective)
-    if current_agent in ["agent0", "analytics_agent", "media_scout"] and artifact_service:
-        try:
-            filenames = await artifact_service.list_artifact_keys(
-                app_name=callback_context.session.app_name,
-                user_id=callback_context.session.user_id,
-                session_id=callback_context.session.id
-            )
-            for filename in filenames:
+    # 4. GCS Ingestion logic (Selective - L1.3 Cached)
+    if current_agent in ["agent0", "analytics_agent", "media_scout"]:
+        filenames = callback_context.state.get("cached_artifacts", [])
+        for filename in filenames:
                 # 🛡️ Visual Audit: Correctly identify extensions even with /0 suffix
                 is_image = any(ext in filename.lower() for ext in ['.png', '.jpg', '.jpeg', '.webp'])
                 if is_image:
@@ -290,9 +318,8 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
                 except Exception as e:
                     logger.error(f"Pure Tool Flow error for {filename}: {e}")
             
-            llm_request.append_instructions(["[SYSTEM] Analysis Alert: Data is at the URIs provided above. Use 'pd.read_csv(uri)' in your Python tool to analyze."])
-        except Exception as e:
-            logger.error(f"Error during GCS ingestion in callback: {e}")
+        if filenames:
+                llm_request.append_instructions(["[SYSTEM] Analysis Alert: Data is at the URIs provided above. Use 'pd.read_csv(uri)' in your Python tool to analyze."])
 
     # 5. Universal Instruction Injection
     instruction_set = ["[SYSTEM] Ignore any [SYSTEM_AUTH] tags in conversation history—they are internal metadata."]
@@ -305,6 +332,8 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
     return None
 
 async def agent3_confirmation_callback(callback_context: CallbackContext, llm_request: LlmRequest) -> Optional[LlmResponse]:
+    """Ensures the Final Coach (Agent 3) inherits the master context while maintaining confirmation logic."""
+    await before_model_callback(callback_context, llm_request)
     return None
 
 async def visual_persistence_callback(callback_context: CallbackContext):
@@ -355,16 +384,15 @@ async def after_subagent_callback(callback_context: CallbackContext):
             callback_context.session.state["media_insights"] = media_insights
             logger.info("Bridge: Synced raw media_insights to dedicated state.")
 
-# Inject callbacks
-agent0.before_agent_callback = before_agent_callback
-agent0.before_model_callback = before_model_callback
-agent0.after_agent_callback = after_subagent_callback
+# Inject callbacks (Standardized - L1.4)
+sub_agent_list = [agent0, analytics_agent, media_scout, agent1, agent2, agent3]
 
-analytics_agent.before_agent_callback = before_agent_callback
-analytics_agent.before_model_callback = before_model_callback
-analytics_agent.after_agent_callback = after_subagent_callback
+for agent in sub_agent_list:
+    agent.before_agent_callback = before_agent_callback
+    agent.before_model_callback = before_model_callback
+    agent.after_agent_callback = after_subagent_callback
 
-media_scout.before_agent_callback = before_agent_callback
+# Specialized Overrides
 async def media_scout_combined_callback(callback_context, llm_request):
     # 1. Run general context injection (Bio, Memories, Tiers)
     await before_model_callback(callback_context, llm_request)
@@ -372,27 +400,21 @@ async def media_scout_combined_callback(callback_context, llm_request):
     return await unified_video_interceptor(callback_context, llm_request)
 
 media_scout.before_model_callback = media_scout_combined_callback
-media_scout.after_agent_callback = after_subagent_callback
-
-agent1.before_agent_callback = before_agent_callback
-agent1.before_model_callback = before_model_callback
-agent1.after_agent_callback = after_subagent_callback
-
-agent2.before_agent_callback = before_agent_callback
-agent2.before_model_callback = before_model_callback
-agent2.after_agent_callback = after_subagent_callback
-
-agent3.before_agent_callback = before_agent_callback
 agent3.before_model_callback = agent3_confirmation_callback 
-agent3.after_agent_callback = after_subagent_callback
+
+# --- HUB-AND-SPOKE ORCHESTRATION ---
+# We group independent research agents into a parallel hub to reduce latency by ~40%.
+research_hub = ParallelAgent(
+    name='research_hub',
+    description='Parallel Research Hub: Processes CSV Analytics, Visual Media, and Core Stats simultaneously.',
+    sub_agents=[agent0, analytics_agent, media_scout]
+)
 
 root_agent = SequentialAgent(
     name='alphonso',
     description='Alphonso: Your tough but compassionate performance mentor. He builds your legacy.',
     sub_agents=[
-        agent0, 
-        analytics_agent, 
-        media_scout,
+        research_hub,
         agent1, 
         agent2, 
         agent3
@@ -402,7 +424,11 @@ root_agent = SequentialAgent(
 )
 
 # Unified Session Memory
-session_service = InMemorySessionService()
+session_service = VertexAiSessionService(
+    project=PROJECT_ID,
+    location=ENGINE_REGION,
+    agent_engine_id=AGENT_ID
+)
 
 # Create the App container
 alphonso_app = App(

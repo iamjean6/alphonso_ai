@@ -5,7 +5,7 @@ from .prompt import get_agent3_instruction
 
 agent3 = LlmAgent(
     model=Gemini(
-        model='gemini-2.5-pro',
+        model='gemini-2.5-flash',
         retry_options=types.HttpRetryOptions(initial_delay=2, attempts=5)
     ),
     name='alphonso',

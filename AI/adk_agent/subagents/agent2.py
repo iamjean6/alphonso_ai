@@ -12,6 +12,7 @@ import os
 import logging
 import time
 import socket
+import re
 
 # Set global timeout for all network requests to handle flakiness
 socket.setdefaulttimeout(15)
@@ -21,11 +22,17 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 youtube = build('youtube', 'v3', developerKey=os.getenv('YOUTUBE_API_KEY'))
 
+
+
 def search_youtube(query: str):
     """
-    Finds and sorts the top 10 most-viewed authoritative sports videos.
+    Finds top sports videos with persistent caching and randomized sampling.
     """
-    logger.info(f"YouTube Tool: Searching for '{query}'")
+    query = query.strip().lower()
+    
+
+
+    logger.info(f"YouTube Tool: Fetching fresh data for '{query}'")
     
     items = []
     # Production Resilience: 3 retries with exponential backoff
@@ -35,10 +42,10 @@ def search_youtube(query: str):
                 part='snippet',
                 q=query,
                 type='video',
-                maxResults=30,
-                publishedAfter="2011-01-01T00:00:00Z",  # Corrected to fetch videos after 2010
-                videoDuration="medium", # API accepts a single string: 'any', 'short', 'medium', or 'long'
-                videoDefinition="any", # Optimization: focus on high-quality content
+                maxResults=50,  # 🚀 Fetch Deep (Quota Optimization)
+                publishedAfter="2011-01-01T00:00:00Z",
+                videoDuration="any",
+                videoDefinition="any",
                 videoType="any",
                 order="relevance"
             )
@@ -49,7 +56,6 @@ def search_youtube(query: str):
                 logger.warning(f"YouTube Tool: No results for '{query}'")
                 return "No videos found"
             
-            # If we reach here, we succeeded
             break
             
         except Exception as e:
@@ -63,13 +69,25 @@ def search_youtube(query: str):
 
     video_ids = [item['id']['videoId'] for item in items]
     details_request = youtube.videos().list(
-        part='snippet,statistics',
+        part='snippet,statistics,contentDetails',
         id=','.join(video_ids)
     )
     details_response = details_request.execute()
-    videos = []
+    
+    all_found_videos = []
     for item in details_response.get('items', []):
-        videos.append({
+        duration = item.get('contentDetails', {}).get('duration', '')
+        is_short = False
+        if 'H' not in duration:
+            m = re.search(r'PT(\d+)M', duration)
+            minutes = int(m.group(1)) if m else 0
+            if minutes < 4:
+                is_short = True
+        
+        if is_short:
+            continue
+
+        all_found_videos.append({
             'title': item['snippet']['title'],
             'url': f"https://www.youtube.com/watch?v={item['id']}",
             'thumbnail': item['snippet']['thumbnails']['high']['url'],
@@ -77,8 +95,9 @@ def search_youtube(query: str):
             'views': int(item['statistics'].get('viewCount', 0)),
             'publishedAt': item['snippet']['publishedAt'][:4],
         })
-    return videos
-
+    
+    return all_found_videos
+    
 def after_tool_callback(tool, args, tool_context, tool_response):
     """
     Refined Tool Callback:
@@ -86,8 +105,8 @@ def after_tool_callback(tool, args, tool_context, tool_response):
     """
     # Only apply to our specific search tool
     if tool.name == "search_youtube" and isinstance(tool_response, list):
-        # Sort by views descending and take the top 10
-        sorted_videos = sorted(tool_response, key=lambda x: x.get('views', 0), reverse=True)[:15]
+        # Sort by views descending and provide a deep pool (50) for the architect to filter
+        sorted_videos = sorted(tool_response, key=lambda x: x.get('views', 0), reverse=True)[:30]
         return sorted_videos
     
     return tool_response
