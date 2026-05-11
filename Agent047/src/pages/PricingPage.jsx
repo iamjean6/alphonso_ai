@@ -34,7 +34,7 @@ const PricingPage = () => {
     const formatPrice = (usdPrice) => {
         if (usdPrice === '0') return '0';
         const price = parseFloat(usdPrice) * rates[currency];
-        
+
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: currency,
@@ -55,7 +55,7 @@ const PricingPage = () => {
             name: 'Rookie',
             priceUSD: '0',
             icon: <Zap className="w-10 h-10 text-blue-400" />,
-            features: ['2 Technical Audits', 'Standard Memory', 'Community Support'],
+            features: ['3 Chats per day', 'No Chat History Access', 'Two Sports', 'Standard Memory', 'Five Youtube Videos per Chat', 'Community Support'],
             buttonText: 'Get Started',
             color: 'blue'
         },
@@ -64,7 +64,7 @@ const PricingPage = () => {
             name: 'Prospect',
             priceUSD: '5',
             icon: <Trophy className="w-10 h-10 text-emerald-400" />,
-            features: ['50 Technical Audits', 'Deep Memory Bank', 'HD Media Scouting', 'Priority Queue'],
+            features: ['10 Technical Audits per Day', 'Five Sports', 'Simple file summary/analysis', 'Deep Memory Bank', 'Two uploads per day', '10 Youtube videos per Chat ', 'Chat History Access'],
             buttonText: 'Upgrade to Prospect',
             color: 'emerald'
         },
@@ -73,7 +73,7 @@ const PricingPage = () => {
             name: 'Elite',
             priceUSD: '10',
             icon: <Crown className="w-10 h-10 text-amber-500" />,
-            features: ['Unlimited Audits', 'Legendary Memory', 'Visual Masterclasses', 'Direct AI Coaching', 'CSV/JSON Analytics'],
+            features: ['20 Technical Audits per day', 'Personalized Workout Scheduling', 'Ten Sports', 'Advanced statistical analysis', 'Nutritional Agent', '15 Youtube Videos per chat', 'Direct AI Coaching', 'More Uploads', 'Chat History Access'],
             buttonText: 'Go Elite',
             color: 'amber',
             popular: true
@@ -81,9 +81,9 @@ const PricingPage = () => {
         {
             id: 'legend',
             name: 'Legend',
-            priceUSD: '15',
+            priceUSD: '16',
             icon: <ShieldCheck className="w-10 h-10 text-purple-400" />,
-            features: ['Full Legacy Vault', 'Multi-sport Sync', 'Alpha Access to New Tools', 'White-glove Support'],
+            features: [' Longer Sessions', 'Unlimited-sports Sync', 'Video Uploads and Analysis', '20 Youtube Videos per chat', 'Full App Access', 'Accountability follow ups', 'Conversational Agents'],
             buttonText: 'Become a Legend',
             color: 'purple'
         }

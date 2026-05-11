@@ -16,6 +16,7 @@ import { listSessions, deleteSession, getSessionMessages } from './controller/se
 import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
 import { login, register, user, refresh, logout, checkUsername, requestOTP } from './controller/authController.js';
 import { bootstrapCache } from './cache/bootstrap.js';
+import paypalRoutes from './routes/paypal.js';
 
 dotenv.config();
 
@@ -93,6 +94,7 @@ app.delete("/sessions/:id", authMiddleware, deleteSession);
 // PAYMENT CALLBACKS (Public)
 app.post("/api/payments/mpesa-callback", mpesaCallback);
 app.post("/api/payments/paystack-webhook", paystackWebhook);
+app.use("/api/paypal", paypalRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

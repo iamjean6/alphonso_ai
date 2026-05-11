@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Smartphone, ShieldCheck, Lock, CheckCircle2, Info } from 'lucide-react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { createPayPalOrder, capturePayPalPayment } from '../../services/api';
 
-const CheckoutPage = ({ userData }) => {
+const CheckoutPage = ({ userData, setUserData }) => {
     const { planId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -11,6 +13,18 @@ const CheckoutPage = ({ userData }) => {
     const [method, setMethod] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingRates, setLoadingRates] = useState(true);
+    const [idempotencyKey, setIdempotencyKey] = useState("");
+
+    const initialOptions = {
+        clientId: import.meta.env.VITE_PAYPAL_CLIENTID,
+        currency: currency,
+        intent: "capture",
+    }
+
+    useEffect(() => {
+        // Generate a unique key for this checkout session
+        setIdempotencyKey(crypto.randomUUID());
+    }, []);
 
     useEffect(() => {
         const fetchRates = async () => {
@@ -41,8 +55,6 @@ const CheckoutPage = ({ userData }) => {
         legend: { name: 'Legend Tier', usd: 15 }
     };
 
-
-
     const currentPlan = plans[planId] || plans.prospect;
     const convertedAmount = currentPlan.usd * rates[currency];
 
@@ -56,9 +68,54 @@ const CheckoutPage = ({ userData }) => {
 
     const isKES = currency === 'KES';
 
+    // PAYPAL HANDLERS
+    const onCreateOrder = async (data, actions) => {
+        try {
+            const response = await createPayPalOrder({
+                plan: currentPlan.name,
+                amount: convertedAmount,
+                currency: currency,
+                idempotencyKey: idempotencyKey // Send key to prevent duplicates
+            });
+            return response.id;
+        } catch (error) {
+            console.error("PayPal Create Order Error:", error);
+            alert("Failed to initiate PayPal checkout. Please try again.");
+        }
+    };
+
+    const onApprove = async (data, actions) => {
+        try {
+            setIsLoading(true);
+            const response = await capturePayPalPayment(data.orderID);
+            
+            if (response.message === "Payment captured successfully") {
+                // Update local global state
+                setUserData(prev => ({
+                    ...prev,
+                    tier: response.user.tier,
+                    isPro: response.user.isPro
+                }));
+
+                navigate('/paypal/complete-payment', { state: { order: response.order } });
+            }
+        } catch (error) {
+            console.error("PayPal Capture Error:", error);
+            alert("Payment verification failed. Please contact support.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const onError = (err) => {
+        console.error("PayPal Script/Button Error:", err);
+    };
+
     const handlePayment = async () => {
+        if (method === 'paypal') return; // PayPal is handled by its own buttons
+        
         setIsLoading(true);
-        // Simulate processing
+        // Simulate other payment methods (M-Pesa/Paystack)
         setTimeout(() => {
             setIsLoading(false);
             alert(`Simulation: Payment of ${currency} ${convertedAmount.toLocaleString()} initiated via ${method}`);
@@ -170,34 +227,39 @@ const CheckoutPage = ({ userData }) => {
                         {/* PAYPAL */}
                         <div
                             onClick={() => setMethod('paypal')}
-                            className={`p-6 rounded-3xl border-2 transition-all cursor-pointer
-                                ${method === 'paypal' ? 'border-amber-500 bg-amber-500/5' : 'border-border hover:border-amber-500/40'}
+                            className={`p-1 rounded-3xl border-2 transition-all cursor-pointer
+                                ${method === 'paypal' ? 'border-yellow-500 bg-yellow-500/5' : 'border-border hover:border-yellow-500/40'}
                             `}
                         >
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <CreditCard className="w-6 h-6 text-amber-500" />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-lg">PayPal</span>
-                                        <span className="text-[10px] uppercase font-bold text-muted-foreground text-amber-500/60 tracking-widest">Global Payment</span>
-                                    </div>
-                                </div>
-                                {method === 'paypal' && <CheckCircle2 className="text-amber-500" />}
+                            <div className="p-5">
+                                <PayPalScriptProvider options={initialOptions}>
+                                    <PayPalButtons
+                                        style={{
+                                            shape: "rect",
+                                            layout: "vertical",
+                                            color: "gold",
+                                            label: "paypal"
+                                        }}
+                                        createOrder={onCreateOrder}
+                                        onApprove={onApprove}
+                                        onError={onError}
+                                    />
+                                </PayPalScriptProvider>
                             </div>
                         </div>
                     </div>
 
                     <button
-                        disabled={!method || isLoading}
+                        disabled={!method || isLoading || (method === 'paypal')}
                         onClick={handlePayment}
                         className={`w-full py-6 rounded-[32px] font-black uppercase tracking-widest text-lg italic transition-all shadow-2xl active:scale-95
-                            ${!method
+                            ${(!method || (method === 'paypal'))
                                 ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
                                 : 'bg-accent-sport text-black hover:scale-[1.02] shadow-accent-sport/20'
                             }
                         `}
                     >
-                        {isLoading ? 'Encrypting Connection...' : `Complete ${method?.toUpperCase()} Audit`}
+                        {isLoading ? 'Encrypting Connection...' : method === 'paypal' ? 'Use PayPal Buttons Above' : `Complete ${method?.toUpperCase()} Audit`}
                     </button>
 
                     <div className="mt-8 flex justify-center items-center gap-6 text-muted-foreground opacity-50">
@@ -214,3 +276,4 @@ const CheckoutPage = ({ userData }) => {
 };
 
 export default CheckoutPage;
+

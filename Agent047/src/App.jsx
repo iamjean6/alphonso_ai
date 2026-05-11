@@ -8,6 +8,7 @@ import PricingPage from './pages/PricingPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/Auth/LoginPage';
 import SignupPage from './pages/Auth/SignupPage';
+import CompletePayment from './pages/paypal/completepayment';
 import { updateProfile, getUserDetails, logout, setAccessToken, refreshAccessToken } from '../services/api';
 import { RingLoader } from 'react-spinners';
 
@@ -174,7 +175,11 @@ function App() {
         />
         <Route
           path="/checkout/:planId"
-          element={<CheckoutPage userData={userData} />}
+          element={<CheckoutPage userData={userData} setUserData={setUserData} />}
+        />
+        <Route
+          path="/paypal/complete-payment"
+          element={<CompletePayment />}
         />
         {/* Fallback to home */}
         <Route path="*" element={<Navigate to="/" replace />} />

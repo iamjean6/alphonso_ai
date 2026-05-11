@@ -274,3 +274,16 @@ export const uploadStatsFile = async (file, sessionId, onProgress) => {
         throw new Error(err.response?.data?.message || err.message || "Failed to stream video.");
     }
 };
+/**
+ * 6. PAYMENTS & PAYPAL
+ */
+export const createPayPalOrder = async (orderData) => {
+    // orderData: { plan, amount, currency, idempotencyKey }
+    const response = await api.post(`/api/paypal/create-order`, orderData);
+    return response.data;
+};
+
+export const capturePayPalPayment = async (orderId) => {
+    const response = await api.post(`/api/paypal/capture-payment/${orderId}`);
+    return response.data;
+};

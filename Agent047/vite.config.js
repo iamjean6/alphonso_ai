@@ -10,4 +10,10 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
+  server: {
+    port: 5173,
+    proxy: {
+      "/paypal": "http://127.0.0.1:3000"
+    }
+  }
 })
