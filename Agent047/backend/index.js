@@ -16,6 +16,7 @@ import { listSessions, deleteSession, getSessionMessages } from './controller/se
 import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
 import { login, register, user, refresh, logout, checkUsername, requestOTP } from './controller/authController.js';
 import { bootstrapCache } from './cache/bootstrap.js';
+import { connectKafka } from './services/kafkaClient.js';
 import paypalRoutes from './routes/paypal.js';
 
 dotenv.config();
@@ -61,6 +62,8 @@ mongoose.connect(process.env.MONGO_URI)
         console.log("Connected to MongoDB");
         // Warm up the Redis cache (Bloom Filter, etc.)
         await bootstrapCache();
+        // Initialize Kafka Producer and Response Consumer
+        await connectKafka();
     })
     .catch((err) => console.log("MongoDB connection error: ", err));
 

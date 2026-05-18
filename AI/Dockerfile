@@ -48,4 +48,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD gunicorn '.venv.Lib.site-packages.fastapi.middleware.wsgi' --bind=0.0.0.0:8000
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

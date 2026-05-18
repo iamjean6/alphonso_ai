@@ -238,6 +238,17 @@ const ChatUI = ({ userData, onLogout }) => {
                         lastMsg.videos = videos.length > 0 ? videos : lastMsg.videos;
                         return newMsgs;
                     });
+                } else if (chunk.type === 'image') {
+                    setMessages(prev => {
+                        const newMsgs = [...prev];
+                        const lastMsg = newMsgs[newMsgs.length - 1];
+                        lastMsg.images = [...(lastMsg.images || []), chunk];
+                        return newMsgs;
+                    });
+                } else if (chunk.type === 'error') {
+                    throw new Error(chunk.message || "Agent execution failure.");
+                } else if (chunk.type === 'status' && chunk.message) {
+                    console.log(`[Subagent Status] ${chunk.message}`);
                 }
             });
 

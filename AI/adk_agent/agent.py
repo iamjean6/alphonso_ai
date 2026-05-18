@@ -37,10 +37,13 @@ console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(level
 logger.addHandler(console_handler)
 
 # File Handler (Fix for stale logs)
-log_file_path = os.path.join(os.path.dirname(__file__), "..", "logger.log")
-file_handler = logging.FileHandler(log_file_path)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(file_handler)
+try:
+    log_file_path = os.path.join(os.path.dirname(__file__), "..", "logger.log")
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(file_handler)
+except Exception as e:
+    logger.warning(f"Could not initialize FileHandler (e.g. secure Docker container permissions): {e}. Falling back to console logging.")
 
 logger.setLevel(logging.INFO)
 

@@ -6,6 +6,8 @@ import Message from '../model/message.js';
 import { parseAlphonsoResponse } from '../utils/parser.js';
 import { getSignedUrl } from '../utils/gcs.js';
 import { pushMessage, getUserProfile, setUserProfile } from '../cache/query.js';
+import { produceMessage, activeStreamSessions } from '../services/kafkaClient.js';
+import redisSubscriber from '../cache/pubsub.js';
 
 // 1. CHAT RELAY (The Streamer)
 export const chatWithAi = async (req, res) => {
@@ -70,111 +72,84 @@ export const chatWithAi = async (req, res) => {
         pushMessage(finalSessionId, userMsg);
         Message.create(userMsg).catch(err => console.error("[DB] User message persist failed:", err));
 
-        // Call Python FastAPI server with streaming enabled
-        const response = await axios({
-            method: 'post',
-            url: `${process.env.AI_SERVER_URL}/chat`,
-            headers: {
-                'X-Internal-Token': process.env.INTERNAL_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            data: {
-                message,
-                user_id: userIdForAi,
-                session_id: finalSessionId, 
-                active_sport,
-                athlete_bio: athleteBio,
-                tier: req.user?.tier || 'ELITE' // <-- The Tier Key
-            },
-            responseType: 'stream'
-
-            
-        });
-
-        // Set headers for SSE (Server-Sent Events)
+        // --- ASYNCHRONOUS KAFKA DECOUPLING ---
+        // 1. Set headers for SSE (Server-Sent Events)
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
 
-        // BACKGROUND: Buffer and Persist for DB
-        let fullResponse = "";
-        let sessionImages = []; // Array of {url, filename}
-        
-        response.data.on('data', async (chunk) => {
-            const lines = chunk.toString().split('\n');
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                
-                // Pass the raw line to frontend first so text flows smoothly
-                res.write(`${line}\n\n`);
+        // Keep SSE connection alive across strict firewall / proxy rules with periodic comment heartbeats
+        const heartbeatInterval = setInterval(() => {
+            res.write(': ping\n\n');
+        }, 15000);
 
-                if (line.startsWith('data: ')) {
-                    try {
-                        const json = JSON.parse(line.slice(6));
-                        if (json.type === 'content' && json.chunk) {
-                            fullResponse += json.chunk;
-                            
-                            // Detect [GRAPH_FILE: plot_N.png]
-                            const graphMatch = json.chunk.match(/\[GRAPH_FILE:\s*(plot_\d+\.png)\]/);
-                            if (graphMatch) {
-                                const filename = graphMatch[1];
-                                console.log(`[Elite Lab] Detected Graph: ${filename}`);
-                                
-                                // NON-BLOCKING: Fire and forget the signing so it doesn't choke the text stream
-                                (async () => {
-                                    try {
-                                        const signedUrl = await getSignedUrl(finalSessionId, filename);
-                                        const imageEvent = {
-                                            type: 'image',
-                                            url: signedUrl,
-                                            filename: filename
-                                        };
-                                        res.write(`data: ${JSON.stringify(imageEvent)}\n\n`);
-                                        sessionImages.push(imageEvent);
-                                    } catch (err) {
-                                        console.error(`Async Signing Error for ${filename}:`, err);
-                                    }
-                                })();
-                            }
+        // 2. Register active SSE stream for final Kafka completion catch
+        activeStreamSessions.set(finalSessionId, { res, heartbeatInterval });
+
+        const streamChannel = `stream:${finalSessionId}`;
+
+        // 3. Subscribe to Redis in-memory token stream
+        await redisSubscriber.subscribe(streamChannel, (rawMessage) => {
+            // Forward raw SSE chunk directly to frontend
+            res.write(`${rawMessage}\n\n`);
+
+            // Detect graph files in streaming chunk for dynamic signing
+            if (rawMessage.startsWith('data: ')) {
+                try {
+                    const json = JSON.parse(rawMessage.slice(6));
+                    if (json.type === 'content' && json.chunk) {
+                        const graphMatch = json.chunk.match(/\[GRAPH_FILE:\s*(plot_\d+\.png)\]/);
+                        if (graphMatch) {
+                            const filename = graphMatch[1];
+                            console.log(`[Elite Lab] Detected Graph in Stream: ${filename}`);
+                            (async () => {
+                                try {
+                                    const signedUrl = await getSignedUrl(finalSessionId, filename);
+                                    const imageEvent = {
+                                        type: 'image',
+                                        url: signedUrl,
+                                        filename: filename
+                                    };
+                                    res.write(`data: ${JSON.stringify(imageEvent)}\n\n`);
+                                } catch (err) {
+                                    console.error(`Async Signing Error for ${filename}:`, err);
+                                }
+                            })();
                         }
-                    } catch (e) {
-                        // Skip malformed chunks
                     }
-                }
+                } catch (e) {}
+            }
+
+            if (rawMessage.includes('"status":"DONE"') || rawMessage.includes('"status":"ERROR"')) {
+                redisSubscriber.unsubscribe(streamChannel);
             }
         });
 
-        response.data.on('end', async () => {
+        // 4. Handle client early disconnect
+        req.on('close', async () => {
+            clearInterval(heartbeatInterval);
+            activeStreamSessions.delete(finalSessionId);
             try {
-                const { cleanedText, videos } = parseAlphonsoResponse(fullResponse);
-                const assistantMsg = {
-                    sessionId: finalSessionId,
-                    uid: userIdForAi,
-                    role: 'assistant',
-                    content: cleanedText || (sessionImages.length > 0 ? "Visual Data Deconstruction" : (videos.length > 0 ? "Video Scouting Report" : "")),
-                    rawContent: fullResponse,
-                    videos,
-                    images: sessionImages
-                };
-
-                // Sync to Hot Cache (Redis)
-                pushMessage(finalSessionId, assistantMsg);
-
-                // Persist to Archive (MongoDB)
-                await Message.create(assistantMsg);
-                
-                console.log(`[Elite Cache] Persisted AI response for session ${finalSessionId}.`);
-            } catch (dbErr) {
-                console.error("[DB/Cache] Failed to persist AI response:", dbErr.message);
-            }
+                await redisSubscriber.unsubscribe(streamChannel);
+            } catch(e) {}
         });
+
+        // 5. Fire Task Event to Kafka
+        const taskPayload = {
+            eventId: `evt_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            sessionId: finalSessionId,
+            userId: userIdForAi,
+            tier: req.user?.tier || 'ELITE',
+            activeSport: active_sport || 'basketball',
+            athleteBio,
+            message
+        };
+
+        await produceMessage('ai-chat-requests', finalSessionId, taskPayload);
 
     } catch (error) {
         console.error("Chat Relay Error:", error.message);
-        if (error.response) {
-            console.error("Python Server Response Error Data:", error.response.data);
-            console.error("Python Server Status:", error.response.status);
-        }
         res.status(500).json({ message: "AI Service temporarily unavailable." });
     }
 };

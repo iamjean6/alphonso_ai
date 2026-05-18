@@ -20,10 +20,12 @@ __pycache__/
 .gemini/
 *.json
 !package.json
+
 !package-lock.json
 !pyproject.toml
 !adk.yaml
 !cors-config.json
+kafka_architecture_plan.md
 AI/video_agent/
 AI/logger.log
 AI/.venv/

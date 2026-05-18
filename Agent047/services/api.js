@@ -225,12 +225,15 @@ export const chatWithAi = async (message, sessionId, onChunk) => {
                     const data = JSON.parse(jsonStr);
                     onChunk(data); 
                     
-                    if (data.status === 'finished') {
+                    if (data.status === 'DONE' || data.status === 'finished' || data.type === 'error') {
                         return;
                     }
                 } catch (e) {
                     // Ignore malformed JSON
                 }
+            } else if (line.startsWith(': ping')) {
+                // SSE Heartbeat comment received, keep socket alive
+                console.debug("[SSE] Heartbeat received");
             }
         }
     }

@@ -11,14 +11,7 @@ import uuid
 from fastapi import FastAPI, Depends, HTTPException, Security, Body, Header, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from fastapi.security.api_key import APIKeyHeader
-from pydantic import BaseModel
-
 from google.cloud import storage
-from google.adk import Runner
-from google.adk.sessions import InMemorySessionService
-from google.genai import types
-from google.adk.events.event import Event
-from google.adk.agents.run_config import RunConfig, StreamingMode
 
 # Initialize Logger
 logger = logging.getLogger(__name__)
@@ -62,8 +55,8 @@ def configure_bucket_cors():
 if os.getenv("CORS_ENABLED") == "true":
     configure_bucket_cors()
 
-# Import the pre-configured app and services from our agent module
-from adk_agent.agent import alphonso_app, memory_service, artifact_service, session_service
+# Import the pre-configured app from our agent module for path resolution
+from adk_agent.agent import alphonso_app
 
 # 1. We initialize the application. This is the "brain" of our web server.
 app = FastAPI(title="Agent Microservice", description="FastAPI Server for our AI Agent")
@@ -84,14 +77,9 @@ def verify_internal_node_service(api_key: str = Security(api_key_header)):
     return api_key
 
 # -----------------------------------------------------------------------------
-# STAGE 3: THE ENGINE ROOM (ADK RUNNER)
+# STAGE 3: THE ENGINE ROOM (MIGRATED TO WORKER DAEMON)
 # -----------------------------------------------------------------------------
-runner = Runner(
-    app=alphonso_app,
-    session_service=session_service,
-    memory_service=memory_service,
-    artifact_service=artifact_service
-)
+# Note: ADK Runner execution has been offloaded to worker.py via Kafka queue.
 
 # -----------------------------------------------------------------------------
 # ROUTES
@@ -100,124 +88,19 @@ runner = Runner(
 @app.get("/health")
 async def health_check():
     """Verify the server is running."""
-    return {"status": "ok", "message": "Training wheels are on! Server is ready."}
-
-class ChatRequest(BaseModel):
-    message: str
-    user_id: str
-    session_id: Optional[str] = None
-    active_sport: Optional[str] = "basketball"
-    athlete_bio: Optional[str] = None
-    tier: Optional[str] = "ELITE"
+    return {"status": "ok", "message": "Training wheels are on! Gateway Server is ready."}
 
 @app.post("/chat", dependencies=[Depends(verify_internal_node_service)])
-async def chat_endpoint(request: ChatRequest):
+async def chat_endpoint_deprecated():
     """
-    Main entry point for interacting with the Alphonso Agent using Server-Sent Events.
+    DEPRECATED: Multi-agent AI execution has been migrated to the asynchronous Kafka worker daemon (worker.py).
+    Tasks must be produced to the 'ai-chat-requests' Kafka topic.
     """
-    user_id = request.user_id
-    session_id = request.session_id or f"sess-{uuid.uuid4().hex[:8]}"
-    
-    # We wrap everything inside an async generator
-    async def event_generator():
-        try:
-            # 1. Ensure the session exists (L1.5 Fix)
-            active_session = await session_service.get_session(
-                app_name=alphonso_app.name,
-                user_id=user_id,
-                session_id=session_id
-            )
-            if not active_session:
-                active_session = await session_service.create_session(
-                    app_name=alphonso_app.name,
-                    user_id=user_id,
-                    session_id=session_id
-                )
-            
-            # 1b. Inject state variables
-            active_session.state["athlete_tier"] = request.tier.upper()
-            if request.active_sport:
-                active_session.state["active_sport"] = request.active_sport
-            if request.athlete_bio:
-                active_session.state["athlete_bio"] = request.athlete_bio
-            
-            active_session.state["turn_context_loaded"] = False
-            
-            # 2. Run the agent with native streaming (Asynchronous)
-            auth_stamped_message = f"[SYSTEM_AUTH: TIER={request.tier.upper()}]\n{request.message}"
-            logger.info(f"[INCOMING SIGNAL] Message: {request.message[:50]}... | Tier: {request.tier}")
-            logger.info(f"Executing Agent for User: {user_id}, Session: {session_id}")
-            
-            run_config = RunConfig(streaming_mode=StreamingMode.SSE)
-            
-            final_text = ""
-            active_agent = None
-            agent_status_map = {
-                "agent0": " Extracting performance stats from your data...",
-                "analytics_agent": "Crunching analytics and plotting trends...",
-                "media_scout": "Parsing video  for tactical footage...",
-                "agent1": "Synthesizing tactical sports research...",
-                "agent2": "Building your custom video curriculum...",
-                "alphonso": "Alphonso is finalizing your performance audit..."
-            }
+    raise HTTPException(
+        status_code=410,
+        detail="Endpoint deprecated. Alphonso AI workflows are now processed asynchronously via Kafka message queue."
+    )
 
-            async for event in runner.run_async(
-                user_id=user_id,
-                session_id=session_id,
-                new_message=types.Content(parts=[types.Part(text=auth_stamped_message)]),
-                run_config=run_config
-            ):
-                # 📢 GRANULAR STREAMING (Layer 4)
-                # Detect which agent is working and update the frontend
-                current_author = getattr(event, 'author', None)
-                if current_author != active_agent and current_author in agent_status_map:
-                    active_agent = current_author
-                    status_msg = agent_status_map[current_author]
-                    yield f"data: {json.dumps({'type': 'status', 'status': 'WORKING', 'message': status_msg})}\n\n"
-
-                if hasattr(event, 'content') and event.content:
-                    if event.author == 'alphonso':
-                        for part in event.content.parts:
-                            if part.text:
-                                chunk = part.text
-                                
-                                # ADK native streaming yields individual chunks
-                                if event.partial:
-                                    
-                                    yield f"data: {json.dumps({'type': 'content', 'chunk': chunk})}\n\n"
-                                    final_text += chunk
-                                else:
-                                    # Final non-partial event might contain the full text or just the last part
-                                    final_text = chunk
-                                
-            # 4. Memory Persistence happens AFTER the response stream finishes its text
-            if final_text:
-                try:
-                    active_session = await session_service.get_session(app_name=alphonso_app.name, user_id=user_id, session_id=session_id)
-                    user_id_override = active_session.state.get("user_id_override")
-                    target_user_id = user_id_override if user_id_override and user_id_override != "Unknown" else user_id
-                    
-                    logger.info(f"[Server] Attempting to save memory to {target_user_id} in {alphonso_app.name}")
-                    save_events = [
-                        Event(author="user", content=types.Content(role="user", parts=[types.Part(text=request.message)])),
-                        Event(author="model", content=types.Content(role="model", parts=[types.Part(text=final_text)]))
-                    ]
-                    if hasattr(memory_service, "add_events_to_memory"):
-                        await memory_service.add_events_to_memory(app_name=alphonso_app.name, user_id=target_user_id, events=save_events)
-                    logger.info(f"[Server] Memory successfully saved for {target_user_id}!")
-                except Exception as mem_err:
-                    logger.error(f"[Server] Failed to save memory dynamically: {mem_err}", exc_info=True)
-            
-            # Let Node.js know the stream is complete
-            yield f"data: {json.dumps({'type': 'status', 'status': 'DONE'})}\n\n"
-            
-        except Exception as e:
-            logging.error(f"Error in chat endpoint generator: {e}", exc_info=True)
-            # Send an error chunk to Node.js before closing
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-
-    # Step 5: Instead of returning JSON, return the streaming generator
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @app.post("/get_upload_url", dependencies=[Depends(verify_internal_node_service)])

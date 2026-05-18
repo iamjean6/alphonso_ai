@@ -24,6 +24,8 @@ python-dotenv = "^1.1.0"
 google-cloud-aiplatform = {extras = ["adk", "agent_engines"], version = "^1.42.1"}
 absl-py = "^2.1.0"
 cloudpickle = "^3.0.0"
+confluent-kafka = "^2.14.0"
+redis = "^7.4.0"
 
 [tool.poetry.scripts]
 adk-short-bot = "adk_short_bot:app"
