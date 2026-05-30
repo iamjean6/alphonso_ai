@@ -15,6 +15,8 @@ const saslPassword = process.env.KAFKA_SECRET || process.env.KAFKA_SASL_PASSWORD
 const kafkaConfig = {
     clientId: 'alphonso-node-gateway',
     brokers: brokers,
+    connectionTimeout: 45000,
+    authenticationTimeout: 45000,
     retry: {
         initialRetryTime: 300,
         retries: 10
@@ -63,9 +65,16 @@ export const connectKafka = async () => {
                         
                         console.log(`[Kafka Consumer] Received status ${status} for session ${sessionId}`);
 
+                        // Optional Active Flow transition (e.g. self-healing flow completion)
+                        if (payload.activeFlow) {
+                            const Session = (await import('../model/session.js')).default;
+                            await Session.findOneAndUpdate({ sessionId }, { activeFlow: payload.activeFlow });
+                            console.log(`[Flow Router] Kafka Consumer updated Session ${sessionId} activeFlow to: '${payload.activeFlow}'`);
+                        }
+
                         if (status === "SUCCESS") {
                             // Persist to Hot Cache & DB
-                            const { cleanedText, videos } = parseAlphonsoResponse(fullResponse || "");
+                            const { cleanedText, videos, pdfUrl } = parseAlphonsoResponse(fullResponse || "");
                             const assistantMsg = {
                                 sessionId,
                                 uid: userId,
@@ -73,7 +82,8 @@ export const connectKafka = async () => {
                                 content: cleanedText || (sessionImages?.length > 0 ? "Visual Data Deconstruction" : (videos?.length > 0 ? "Video Scouting Report" : "")),
                                 rawContent: fullResponse,
                                 videos,
-                                images: sessionImages || []
+                                images: sessionImages || [],
+                                pdfUrl: pdfUrl || null
                             };
 
                             pushMessage(sessionId, assistantMsg);

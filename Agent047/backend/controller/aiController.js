@@ -8,15 +8,39 @@ import { getSignedUrl } from '../utils/gcs.js';
 import { pushMessage, getUserProfile, setUserProfile } from '../cache/query.js';
 import { produceMessage, activeStreamSessions } from '../services/kafkaClient.js';
 import redisSubscriber from '../cache/pubsub.js';
+import redisClient from '../cache/index.js';
+
+export const cancelChat = async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        if (!sessionId) {
+            return res.status(400).json({ error: "Session ID required for cancellation." });
+        }
+        
+        // 1. Publish out-of-band control message to Python worker (kills active tasks)
+        await redisClient.publish('agent_control', JSON.stringify({ action: "CANCEL", sessionId }));
+        
+        // 2. Fix for Race Condition: Write to cache so worker sees it before processing queued messages
+        await redisClient.setEx(`canceled_session_${sessionId}`, 3600, "true");
+        
+        return res.status(200).json({ success: true, message: "Cancellation signal sent." });
+    } catch (err) {
+        console.error("Cancel Chat Error:", err);
+        return res.status(500).json({ error: "Failed to send cancellation signal." });
+    }
+};
 
 // 1. CHAT RELAY (The Streamer)
 export const chatWithAi = async (req, res) => {
     try {
-        const { message, session_id, active_sport } = req.body;
+        const { message, session_id, active_sport, active_flow } = req.body;
         const { uid, email } = req.user; // uid might be missing in older tokens
 
         // Safe Session ID fallback
         const finalSessionId = session_id || `fallback-${Date.now()}`;
+
+        // Failsafe: Clear any lingering cancel flags for this session so the new message isn't dropped
+        await redisClient.del(`canceled_session_${finalSessionId}`);
 
         // --- IDENTITY RESILIENCE ---
         const userIdForAi = uid || email;
@@ -49,16 +73,30 @@ export const chatWithAi = async (req, res) => {
             athleteBio = `Athlete Stats: Weight ${athlete.weight}kg, Height ${athlete.height}cm. Goals: ${athlete.goals || 'General performance'}. Primary Sports: ${Array.isArray(athlete.primarySports) ? athlete.primarySports.join(', ') : athlete.primarySports}`;
         }
 
-        // Atomic Session Record
-        await Session.findOneAndUpdate(
-            { sessionId: finalSessionId },
-            {
+        // Atomic Session Record & Flow Tracking
+        let session = await Session.findOne({ sessionId: finalSessionId });
+        if (!session) {
+            // Generate a concise title from the user's first message
+            const cleanMessage = message ? message.trim() : "";
+            const dynamicTitle = cleanMessage.length > 25 
+                ? cleanMessage.substring(0, 25) + '...' 
+                : (cleanMessage || "New Performance Chat");
+
+            session = new Session({
+                sessionId: finalSessionId,
                 uid: userIdForAi,
-                lastMessage: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
-                $setOnInsert: { title: "New Performance Chat" }
-            },
-            { upsert: true }
-        );
+                title: dynamicTitle,
+                activeFlow: "research"
+            });
+        }
+        
+        // 1. Resolve Active Flow for THIS turn (Turn-scoped)
+        // Flow detection is now strictly dictated by the Explicit UI Context toggle sent from the frontend.
+        let currentFlow = active_flow || "research";
+
+        session.lastMessage = message.substring(0, 50) + (message.length > 50 ? '...' : '');
+        session.activeFlow = currentFlow;
+        await session.save();
 
         // PERSIST USER MESSAGE
         const userMsg = {
@@ -134,16 +172,41 @@ export const chatWithAi = async (req, res) => {
             } catch(e) {}
         });
 
-        // 5. Fire Task Event to Kafka
+        // 5. Google Calendar OAuth & Timezone Relay
+        const dbUser = await User.findOne({
+            $or: [{ uid: userIdForAi }, { email: userIdForAi }]
+        });
+
+        let googleCalendarToken = null;
+        let userTimezone = "Africa/Nairobi";
+
+        if (dbUser) {
+            userTimezone = dbUser.userTimezone || "Africa/Nairobi";
+            if (dbUser.googleRefreshToken) {
+                googleCalendarToken = {
+                    refresh_token: dbUser.googleRefreshToken,
+                    access_token: dbUser.googleAccessToken,
+                    expiry: dbUser.googleTokenExpiry,
+                    client_id: process.env.GOOGLE_CLIENT_ID,
+                    client_secret: process.env.GOOGLE_CLIENT_SECRET
+                };
+            }
+        }
+
+        // 6. Fire Task Event to Kafka
         const taskPayload = {
             eventId: `evt_${Date.now()}`,
             timestamp: new Date().toISOString(),
             sessionId: finalSessionId,
             userId: userIdForAi,
-            tier: req.user?.tier || 'ELITE',
+            tier: dbUser ? (dbUser.tier || 'rookie').toLowerCase() : 'rookie',
             activeSport: active_sport || 'basketball',
+            primarySports: dbUser ? dbUser.primarySports : [],
             athleteBio,
-            message
+            message,
+            googleCalendarToken,
+            userTimezone,
+            activeFlow: currentFlow
         };
 
         await produceMessage('ai-chat-requests', finalSessionId, taskPayload);

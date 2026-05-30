@@ -12,7 +12,7 @@ else:
 from google.adk.apps import App
 from google.adk.agents.sequential_agent import SequentialAgent
 from google.adk.agents.parallel_agent import ParallelAgent
-from .subagents import agent0, agent1, agent2, agent3, analytics_agent, media_scout
+from .subagents import agent0, agent1, agent2, agent3, analytics_agent, media_scout, workout_planner_agent
 from .subagents.video_agent import unified_video_interceptor
 from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin
 from google.adk.agents.callback_context import CallbackContext
@@ -79,14 +79,15 @@ memory_service = VertexAiMemoryBankService(
 MEMORY_SCOPE_APP = "alphonso_performance_mentor"
     
 artifact_service = None
-if os.getenv('BUCKET_NAME'):
+bucket_env = os.getenv('BUCKET_NAME') or os.getenv('GCS_BUCKET')
+if bucket_env:
     try:
-        artifact_service = GcsArtifactService(bucket_name=os.getenv('BUCKET_NAME'))
-        logger.info(f"GCS Artifact Service initialized with bucket: {os.getenv('BUCKET_NAME')}")
+        artifact_service = GcsArtifactService(bucket_name=bucket_env)
+        logger.info(f"GCS Artifact Service initialized with bucket: {bucket_env}")
     except Exception as e:
         logger.error(f"Failed to initialize GCS Artifact Service: {e}")
 else:
-    logger.warning("BUCKET_NAME not found in environment. Artifacts will default to In-Memory storage.")
+    logger.warning("BUCKET_NAME or GCS_BUCKET not found in environment. Artifacts will default to In-Memory storage.")
 
 
 def is_greeting(text: str) -> bool:
@@ -108,6 +109,13 @@ def is_greeting(text: str) -> bool:
         
     return False
 
+def is_workout_turn(text: str, session_state: dict) -> bool:
+    """
+    Detects if the current turn belongs to the Workout & Calendar Planner flow.
+    Relies strictly on explicit Gateway-driven state persistence.
+    """
+    return session_state.get("active_flow") == "workout"
+
 async def before_agent_callback(callback_context: CallbackContext) -> Optional[LlmResponse]:
     """Master Orchestrator: Handles Tier Gating, Memories, and Data Ingestion."""
     user_input = callback_context.user_content.parts[0].text if callback_context.user_content else ""
@@ -118,6 +126,26 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
         current_agent = callback_context.agent_name
     elif hasattr(callback_context, 'agent') and callback_context.agent:
         current_agent = callback_context.agent.name
+
+    # 0. S&C Workout Routing & Latency Optimizer
+    session_state = callback_context.session.state
+    is_workout = is_workout_turn(user_input, session_state)
+    if is_workout:
+        # If it's a workout/calendar turn, bypass all standard research/coaching agents
+        if current_agent in ["agent0", "analytics_agent", "media_scout", "agent1", "agent2"] or (hasattr(callback_context, '_invocation_context') and callback_context._invocation_context.agent is agent3):
+            logger.info(f"--- [ROUTING] Workout Turn: Bypassing research agent '{current_agent}' ---")
+            return LlmResponse(
+                content=types.Content(parts=[types.Part(text=f"[Bypassed for Workout Flow]")]),
+                custom_metadata={"author": f"{current_agent}_bypass"}
+            )
+    else:
+        # If it's a normal research turn, bypass the workout planner agent
+        if current_agent == "workout_planner_agent":
+            logger.info("--- [ROUTING] Research Turn: Bypassing workout planner agent ---")
+            return LlmResponse(
+                content=types.Content(parts=[types.Part(text="[Bypassed for Research Flow]")]),
+                custom_metadata={"author": "workout_planner_bypass"}
+            )
 
     # ⏱️ Start Stopwatch
     callback_context.state[f"start_time_{current_agent}"] = time.time()
@@ -190,6 +218,20 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     else:
         logger.info(f"--- [GATEKEEPER] State Check: {current_agent} | Tier: {user_tier} ---")
 
+    # 4. Active Flow Routing (Research vs Workout)
+    active_flow = callback_context.state.get("active_flow", "research")
+    previous_content = callback_context.user_content.parts[0].text if callback_context.user_content else ""
+
+    if active_flow == "research":
+        if current_agent == "workout_planner_agent":
+            logger.info(f"Flow Router: Bypassing {current_agent} to preserve Research output.")
+            return LlmResponse(content=types.Content(parts=[types.Part(text=previous_content)]))
+            
+    if active_flow == "plan_workout":
+        if current_agent in ["agent0", "analytics_agent", "media_scout", "agent1", "agent2", "agent3"]:
+            logger.info(f"Flow Router: Bypassing {current_agent} to skip to Workout Planner.")
+            return LlmResponse(content=types.Content(parts=[types.Part(text=previous_content)]))
+
     # 🛡️ VIDEO DETECTION: Find YouTube link (L1.5 Ephemeral Fix)
     youtube_regex = r"(?:https?://)?(?:www\.)?(?:youtube\.com|youtu\.be)/(?:watch\?v=)?([^/\s?]+)"
     yt_match = re.search(youtube_regex, callback_context.user_content.parts[0].text if callback_context.user_content else "")
@@ -210,6 +252,11 @@ async def before_agent_callback(callback_context: CallbackContext) -> Optional[L
     if user_tier == "PROSPECT" and current_agent in ["analytics_agent", "media_scout"]:
         logger.info(f"Gatekeeper Enforcement: PROSPECT blocked from Deep Lab.")
         return LlmResponse(content=types.Content(parts=[types.Part(text="[TIER_LIMIT] Deep Analytical Scout is locked for Prospect tier. Upgrade to Elite for visual analysis.")]))
+
+    # 🛑 TIER-GATE: WORKOUT PLANNER (Blocks Rookie/Prospect)
+    if user_tier in ["ROOKIE", "PROSPECT"] and current_agent == "workout_planner_agent":
+        logger.info(f"Gatekeeper Enforcement: {user_tier} blocked from {current_agent}")
+        return LlmResponse(content=types.Content(parts=[types.Part(text="[TIER_LIMIT] Access denied. Customized Workout Planning & Calendar Scheduling is an Elite-tier feature. Upgrade to unlock this capability.")]))
 
     # 🟢 ELITE: Exclusive Skip (Bypass Summary for Deep Analytics)
     if current_agent == "agent0" and user_tier in ["ELITE", "LEGEND"]:
@@ -258,7 +305,7 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
     user_name = callback_context.state.get("user_name", "Anonymous Athlete")
     active_sport = callback_context.state.get("active_sport", "General Sports")
     
-    if current_agent == "agent3":
+    if current_agent in ["agent3", "workout_planner_agent", "alphonso"]:
         athlete_bio = callback_context.state.get("athlete_bio", "")
         memories = callback_context.state.get("master_memories", "")
         if not memories:
@@ -267,6 +314,17 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
         identity_context = f"Athlete: {user_name} | Bio: {athlete_bio}"
         memory_injection = f"\n[PAST MEMORIES]\n{memories}\n" if memories else ""
         logger.info(f"Targeted Context: Full Bio/Memories injected for {current_agent}")
+        if current_agent == "workout_planner_agent":
+            logger.info(f"[WORKOUT_PLANNER DEBUG] Injected Memories: '{memories}'")
+            logger.info(f"[WORKOUT_PLANNER DEBUG] Athlete Bio: '{athlete_bio}'")
+            logger.info(f"[WORKOUT_PLANNER DEBUG] User Input: '{user_input}'")
+            if hasattr(callback_context, '_invocation_context') and hasattr(callback_context._invocation_context, 'agent'):
+                agt = callback_context._invocation_context.agent
+                instr = getattr(agt, 'instruction', 'None')
+                logger.info(f"[WORKOUT_PLANNER DEBUG] System Instruction length: {len(instr) if instr else 0}")
+                if instr:
+                    # Print the last 400 characters of the instruction to verify the memory override section
+                    logger.info(f"[WORKOUT_PLANNER DEBUG] Instruction suffix: '{instr[-400:]}'")
     else:
         identity_context = f"Athlete: {user_name}"
         memory_injection = ""
@@ -331,6 +389,11 @@ async def before_model_callback(callback_context: CallbackContext, llm_request: 
     else:
         instruction_set.append("Agent 0: Provide a concise summary of the performance data.")
 
+    primary_sports = callback_context.state.get("primary_sports", [])
+    if primary_sports:
+        sports_str = ", ".join(primary_sports)
+        instruction_set.append(f"[SYSTEM_GUARDRAIL] The athlete's chosen sports are {sports_str}. ONLY respond to queries related to these sports. If they ask about other sports, kindly decline and remind them to upgrade their tier or update their sports profile.")
+
     llm_request.append_instructions(instruction_set)
     return None
 
@@ -387,8 +450,11 @@ async def after_subagent_callback(callback_context: CallbackContext):
             callback_context.session.state["media_insights"] = media_insights
             logger.info("Bridge: Synced raw media_insights to dedicated state.")
 
+    if current_agent == "workout_planner_agent":
+        logger.info("[Flow Router] Workout Planner completed turn. Deferring flow state to Explicit UI Context.")
+
 # Inject callbacks (Standardized - L1.4)
-sub_agent_list = [agent0, analytics_agent, media_scout, agent1, agent2, agent3]
+sub_agent_list = [agent0, analytics_agent, media_scout, agent1, agent2, agent3, workout_planner_agent]
 
 for agent in sub_agent_list:
     agent.before_agent_callback = before_agent_callback
@@ -420,7 +486,8 @@ root_agent = SequentialAgent(
         research_hub,
         agent1, 
         agent2, 
-        agent3
+        agent3,
+        workout_planner_agent
     ],
     before_agent_callback=before_agent_callback,
     after_agent_callback=visual_persistence_callback

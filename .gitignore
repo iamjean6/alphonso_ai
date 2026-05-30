@@ -32,6 +32,12 @@ AI/.venv/
 AI/__pycache__/
 AI/adk_agent/subagents/__pycache__/
 AI/logger.log
+agent_interruption_plan.md
+calendar_production_architecture.md
+hitl_calendar_walkthrough.md
+performance_and_latency_analysis.md
+webhook_implementation_plan.md
+
 *.pyc
 .env
 *.log

@@ -10,11 +10,11 @@ import authMiddleware from './middleware/auth.js';
 import checkUsage from './middleware/usage.js';
 
 // Controllers
-import { chatWithAi, getUploadUrl } from './controller/aiController.js';
+import { chatWithAi, getUploadUrl, cancelChat } from './controller/aiController.js';
 import { updateProfile } from './controller/profiles.js';
-import { listSessions, deleteSession, getSessionMessages } from './controller/sessionController.js';
+import { listSessions, deleteSession, getSessionMessages, toggleStarSession } from './controller/sessionController.js';
 import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
-import { login, register, user, refresh, logout, checkUsername, requestOTP } from './controller/authController.js';
+import { login, register, user, refresh, logout, checkUsername, requestOTP, googleCalendarAuth, googleCalendarCallback, updateTimezone } from './controller/authController.js';
 import { bootstrapCache } from './cache/bootstrap.js';
 import { connectKafka } from './services/kafkaClient.js';
 import paypalRoutes from './routes/paypal.js';
@@ -25,9 +25,9 @@ const app = express();
 
 // 1. GLOBAL CORS CONFIGURATION (Must be at the top)
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -75,9 +75,10 @@ app.get("/home", (req, res) => {
 // SECURE AI ROUTES
 // Flow: Auth -> Usage Check (2-try) -> AI Controller (Stream/Relay)
 app.post("/chat", authMiddleware, checkUsage, chatWithAi);
+app.post("/chat/cancel", authMiddleware, cancelChat);
 app.post("/get-upload-url", authMiddleware, checkUsage, getUploadUrl);
 
-// AUTH ROUTES (Public)
+// AUTH ROUTES (Public / Protected)
 app.post("/api/auth/request-otp", requestOTP);
 app.post("/api/auth/signup", register);
 app.get("/api/auth/check-username", checkUsername);
@@ -85,6 +86,9 @@ app.post("/api/auth/login", login);
 app.post("/api/auth/refresh", refresh);
 app.post("/api/auth/logout", logout);
 app.get("/api/auth/user", authMiddleware, user);
+app.get("/api/auth/google/calendar", authMiddleware, googleCalendarAuth);
+app.get("/api/auth/google/calendar/callback", googleCalendarCallback);
+app.put("/api/auth/timezone", authMiddleware, updateTimezone);
 
 // Flow: Auth -> Usage Check -> Profile Update
 app.post("/update-profile", authMiddleware, updateProfile);
@@ -93,6 +97,7 @@ app.post("/update-profile", authMiddleware, updateProfile);
 app.get("/sessions", authMiddleware, listSessions);
 app.get("/sessions/:id/messages", authMiddleware, getSessionMessages);
 app.delete("/sessions/:id", authMiddleware, deleteSession);
+app.patch("/sessions/:id/star", authMiddleware, toggleStarSession);
 
 // PAYMENT CALLBACKS (Public)
 app.post("/api/payments/mpesa-callback", mpesaCallback);

@@ -8,23 +8,24 @@ import { getHistory, pushMessage, deleteSessionCache, bulkPushMessages, getUserS
  */
 export const listSessions = async (req, res) => {
     try {
-        const { uid } = req.user;
+        const { uid, email, username } = req.user;
+        const queryUid = username || email || uid;
 
         // 1. READ-THROUGH CACHE: Check Redis first
-        const cachedList = await getUserSessionList(uid);
+        const cachedList = await getUserSessionList(queryUid);
         if (cachedList) {
-            console.log(`[Elite Cache] Session List Hit for ${uid}`);
+            console.log(`[Elite Cache] Session List Hit for ${queryUid}`);
             return res.status(200).json(cachedList);
         }
 
         // 2. CACHE MISS: Fetch from MongoDB
         console.log(`[Elite Cache] Session List Miss. Fetching from DB...`);
-        const sessions = await Session.find({ uid })
+        const sessions = await Session.find({ uid: queryUid })
             .sort({ updatedAt: -1 });
 
         // 3. HYDRATION: Prime Redis
         if (sessions.length > 0) {
-            await setUserSessionList(uid, sessions);
+            await setUserSessionList(queryUid, sessions);
         }
 
         res.status(200).json(sessions);
@@ -41,24 +42,51 @@ export const listSessions = async (req, res) => {
 export const deleteSession = async (req, res) => {
     try {
         const { id } = req.params; // The sessionId
-        const { uid } = req.user;
+        const { uid, email, username } = req.user;
+        const queryUid = username || email || uid;
 
-        const result = await Session.deleteOne({ sessionId: id, uid });
+        const result = await Session.deleteOne({ sessionId: id, uid: queryUid });
 
         if (result.deletedCount === 0) {
             return res.status(404).json({ message: "Session not found or unauthorized." });
         }
 
         // Cascade delete messages
-        await Message.deleteMany({ sessionId: id, uid });
+        await Message.deleteMany({ sessionId: id, uid: queryUid });
 
         // EXPLICIT INVALIDATION: Purge from Redis RAM (including list)
-        await deleteSessionCache(id, uid);
+        await deleteSessionCache(id, queryUid);
 
         res.status(200).json({ message: "Session deleted successfully." });
     } catch (error) {
         console.error("Error deleting session:", error.message);
-        res.status(500).json({ message: "Failed to delete session." });
+        res.status(500).json({ message: "Unable to delete session." });
+    }
+};
+
+/**
+ * Toggles the star/favorite status of a session.
+ */
+export const toggleStarSession = async (req, res) => {
+    try {
+        const { id } = req.params; // The sessionId
+        const { uid, email, username } = req.user;
+        const queryUid = username || email || uid;
+        const { isStarred } = req.body;
+
+        const session = await Session.findOneAndUpdate(
+            { sessionId: id, uid: queryUid },
+            { $set: { isStarred: isStarred } },
+            { new: true, upsert: true }
+        );
+
+        // Invalidate the session list cache so the updated star status is fetched next time
+        await deleteSessionCache(id, queryUid);
+
+        res.status(200).json({ message: "Session star status updated.", session });
+    } catch (error) {
+        console.error("Error toggling star status:", error.message);
+        res.status(500).json({ message: "Unable to update session." });
     }
 };
 
@@ -68,18 +96,22 @@ export const deleteSession = async (req, res) => {
 export const getSessionMessages = async (req, res) => {
     try {
         const { id } = req.params;
-        const { uid } = req.user;
+        const { uid, email, username } = req.user;
+        const queryUid = username || email || uid;
 
         // 1. READ-THROUGH CACHE: Check Redis first
         const cachedMessages = await getHistory(id);
         if (cachedMessages) {
             console.log(`[Elite Cache] Hot-Read for session ${id}`);
-            return res.status(200).json(cachedMessages);
+            const session = await Session.findOne({ sessionId: id, uid: queryUid });
+            const activeFlow = session ? session.activeFlow : 'research';
+            const isStarred = session ? session.isStarred : false;
+            return res.status(200).json({ messages: cachedMessages, activeFlow, isStarred });
         }
 
         // 2. CACHE MISS: Fallback to MongoDB
         console.log(`[Elite Cache] Cache Miss for session ${id}. Fetching from DB...`);
-        const messages = await Message.find({ sessionId: id, uid })
+        const messages = await Message.find({ sessionId: id, uid: queryUid })
             .sort({ timestamp: 1 });
 
         // DYNAMIC SIGNING: Regenerate expired GCS URLs
@@ -107,7 +139,12 @@ export const getSessionMessages = async (req, res) => {
             await bulkPushMessages(id, hydratedMessages);
         }
 
-        res.status(200).json(hydratedMessages);
+        // 4. FETCH METADATA: Get the active flow from the session
+        const session = await Session.findOne({ sessionId: id, uid: queryUid });
+        const activeFlow = session ? session.activeFlow : 'research';
+        const isStarred = session ? session.isStarred : false;
+
+        res.status(200).json({ messages: hydratedMessages, activeFlow, isStarred });
     } catch (error) {
         console.error("Error fetching messages:", error.message);
         res.status(500).json({ message: "Unable to load conversation history." });

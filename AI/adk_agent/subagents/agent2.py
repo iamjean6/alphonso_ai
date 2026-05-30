@@ -101,11 +101,9 @@ def search_youtube(query: str):
 def after_tool_callback(tool, args, tool_context, tool_response):
     """
     Refined Tool Callback:
-    Sorts the raw YouTube results by view count and enforces the strict 10-video limit.
+    Sorts the raw YouTube results by view count and provides a deep pool (30) for the architect to filter.
     """
-    # Only apply to our specific search tool
     if tool.name == "search_youtube" and isinstance(tool_response, list):
-        # Sort by views descending and provide a deep pool (50) for the architect to filter
         sorted_videos = sorted(tool_response, key=lambda x: x.get('views', 0), reverse=True)[:30]
         return sorted_videos
     

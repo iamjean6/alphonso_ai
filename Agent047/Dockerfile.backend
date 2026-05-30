@@ -1,0 +1,16 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Setup Backend
+COPY backend/package*.json ./
+RUN npm install
+COPY backend/ ./
+
+# Environment variables (Defaults, override at runtime)
+ENV PORT=3000
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+CMD ["npx", "tsx", "index.js"]

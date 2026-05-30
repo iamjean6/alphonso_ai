@@ -94,9 +94,17 @@ const createOrder = async (req, res) => {
             return res.status(200).json({ id: existingTx.providerOrderId, status: "EXISTING" });
         }
 
+        // Fetch database user to retrieve correct MongoDB ObjectId _id (required by Transaction schema)
+        const dbUser = await User.findOne({
+            $or: [{ uid: req.user.uid }, { email: req.user.email }]
+        });
+        if (!dbUser) {
+            return res.status(404).json({ error: "Athlete profile not found." });
+        }
+
         // 2. Create internal record if it doesn't exist
         const tx = existingTx || await Transaction.create({
-            userId: req.user._id,
+            userId: dbUser._id,
             idempotencyKey,
             provider: 'paypal',
             amount,

@@ -27,6 +27,18 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    chatsToday: {
+        type: Number,
+        default: 0
+    },
+    uploadsToday: {
+        type: Number,
+        default: 0
+    },
+    lastUsageReset: {
+        type: Date,
+        default: Date.now
+    },
     isPro: {
         type: Boolean,
         default: false
@@ -59,6 +71,23 @@ const userSchema = new mongoose.Schema({
     },
     refreshToken: {
         type: String
+    },
+    // Google Calendar OAuth & Preferences
+    googleRefreshToken: {
+        type: String,
+        default: null
+    },
+    googleAccessToken: {
+        type: String,
+        default: null
+    },
+    googleTokenExpiry: {
+        type: Date,
+        default: null
+    },
+    userTimezone: {
+        type: String,
+        default: "Africa/Nairobi"
     }
 }, { timestamps: true });
 

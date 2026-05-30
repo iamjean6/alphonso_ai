@@ -59,11 +59,19 @@ export const parseAlphonsoResponse = (text) => {
         }
     });
 
-    // 3. CLEAN TEXT (Keep titles, remove metadata, audits, and graph tags)
+    // 3. CAPTURE PDF URL IF PRESENT
+    let pdfUrl = "";
+    const pdfMatch = text.match(/\[PDF_URL:\s*([^\]]+)\]/i);
+    if (pdfMatch) {
+        pdfUrl = pdfMatch[1].trim();
+    }
+
+    // 4. CLEAN TEXT (Keep titles, remove metadata, audits, graph tags, and PDF tags)
     let cleanedText = text;
     cleanedText = cleanedText.replace(/### (THE VISUAL MASTERCLASS|MEDIA & DRILLS|TRAINING RESOURCES)[:\s]*/gi, '');
     cleanedText = cleanedText.replace(/\[PHASE \d+\] [^:\n]+/gi, ''); // Scrub Phase headers
     cleanedText = cleanedText.replace(/\[GRAPH_FILE:\s*[^\]]+\]/gi, ''); // Scrub the graph tags
+    cleanedText = cleanedText.replace(/\[PDF_URL:\s*[^\]]+\]/gi, ''); // Scrub the PDF tag
 
     cleanedText = cleanedText.split('\n').map(line => {
         // Remove "by [Channel Name] Audit: ..." from title lines
@@ -76,13 +84,14 @@ export const parseAlphonsoResponse = (text) => {
         return line;
     }).filter(line => {
         // Remove System Metadata, Link, Audit lines, and decorative horizontal lines
-        const isScrubLine = /(youtube\.com|youtu\.be|\[System Metadata\]|\[SYSTEM\]|\*Audit:\*|Views:|Year:|Thumb:|Link:)/i.test(line);
+        const isScrubLine = /(youtube\.com|youtu\.be|\[System Metadata\]|\[SYSTEM\]|\*Audit:\*|Views:|Year:|Thumb:|Link:|PDF_URL:)/i.test(line);
         const isDecorativeLine = /^[─═\-_*]{5,}$/.test(line.trim());
         return !isScrubLine && !isDecorativeLine;
     }).join('\n');
 
     return {
         cleanedText: cleanedText.trim() || text,
-        videos
+        videos,
+        pdfUrl
     };
 };

@@ -35,9 +35,11 @@ def configure_bucket_cors():
 
         # Define the clearance for our local dev environment
         # We allow localhost:5173 (Vite) and localhost:3000 (Node)
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        backend_url = os.getenv("BACKEND_URL", "http://localhost:3000")
         policies = [
             {
-                "origin": ["http://localhost:5173", "http://localhost:3000"],
+                "origin": [frontend_url, backend_url],
                 "method": ["GET", "PUT", "POST", "DELETE", "OPTIONS"],
                 "responseHeader": ["Content-Type", "X-Requested-With", "Authorization"],
                 "maxAgeSeconds": 3600

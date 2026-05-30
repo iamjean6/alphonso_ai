@@ -17,6 +17,15 @@ const sessionSchema = new mongoose.Schema({
     },
     lastMessage: {
         type: String
+    },
+    activeFlow: {
+        type: String,
+        enum: ['research', 'workout'],
+        default: 'research'
+    },
+    isStarred: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

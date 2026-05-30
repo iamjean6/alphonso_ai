@@ -10,7 +10,10 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_dev_secret_key_change_me_in_production');
+        if (!process.env.JWT_SECRET) {
+            throw new Error("Critical: JWT_SECRET environment variable is missing.");
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // Should contain the 'uid'
         next();
     } catch (error) {

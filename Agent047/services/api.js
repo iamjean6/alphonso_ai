@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Node.js Gateway URL
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 /**
  * In-memory token storage (Security best practice)
@@ -155,6 +155,18 @@ export const updateProfile = async (profileData) => {
     return response.data;
 };
 
+export const updateTimezone = async (timezone) => {
+    const response = await api.put(`/api/auth/timezone`, { timezone });
+    return response.data;
+};
+
+export const connectGoogleCalendar = async () => {
+    const response = await api.get(`/api/auth/google/calendar`);
+    if (response.data.url) {
+        window.location.href = response.data.url;
+    }
+};
+
 /**
  * 3. CHAT SESSIONS
  */
@@ -168,8 +180,18 @@ export const deleteSession = async (sessionId) => {
     return response.data;
 };
 
+export const toggleStarSession = async (sessionId, isStarred) => {
+    const response = await api.patch(`/sessions/${sessionId}/star`, { isStarred });
+    return response.data;
+};
+
 export const getSessionMessages = async (sessionId) => {
     const response = await api.get(`/sessions/${sessionId}/messages`);
+    return response.data;
+};
+
+export const cancelSession = async (sessionId) => {
+    const response = await api.post(`/chat/cancel`, { sessionId });
     return response.data;
 };
 
@@ -177,14 +199,19 @@ export const getSessionMessages = async (sessionId) => {
  * 4. AI CHAT (Streaming)
  * Using 'fetch' instead of axios for easier SSE stream consumption in React
  */
-export const chatWithAi = async (message, sessionId, onChunk) => {
+export const chatWithAi = async (message, sessionId, onChunk, activeFlow = null, abortController = null) => {
+    const payload = { message, session_id: sessionId };
+    if (activeFlow) {
+        payload.active_flow = activeFlow;
+    }
     const response = await fetch(`${BASE_URL}/chat`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${_accessToken}`
         },
-        body: JSON.stringify({ message, session_id: sessionId })
+        body: JSON.stringify(payload),
+        signal: abortController?.signal
     });
 
     if (!response.ok) {
@@ -216,20 +243,24 @@ export const chatWithAi = async (message, sessionId, onChunk) => {
 
         for (const line of lines) {
             if (line.startsWith('data: ')) {
+                let parsedData = null;
                 try {
                     const jsonStr = line.slice(6).trim();
                     if (jsonStr === '[DONE]') {
                         return; 
                     }
-                    
-                    const data = JSON.parse(jsonStr);
-                    onChunk(data); 
-                    
-                    if (data.status === 'DONE' || data.status === 'finished' || data.type === 'error') {
-                        return;
-                    }
+                    parsedData = JSON.parse(jsonStr);
                 } catch (e) {
                     // Ignore malformed JSON
+                    continue;
+                }
+                
+                if (parsedData) {
+                    onChunk(parsedData); 
+                    
+                    if (parsedData.status === 'DONE' || parsedData.status === 'finished' || parsedData.type === 'error') {
+                        return;
+                    }
                 }
             } else if (line.startsWith(': ping')) {
                 // SSE Heartbeat comment received, keep socket alive

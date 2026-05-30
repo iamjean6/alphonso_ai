@@ -4,8 +4,12 @@ import jwt from 'jsonwebtoken';
 import { checkUsernameExists, addUsernameToBloom, saveOTP, verifyOTP } from '../cache/query.js';
 import { generateOTP, sendVerificationEmail } from '../utils/resend.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_dev_secret_key_change_me_in_production';
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your_refresh_secret_key_change_me';
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
+
+if (!JWT_SECRET || !REFRESH_SECRET) {
+    throw new Error("Critical: JWT_SECRET or REFRESH_SECRET environment variable is missing.");
+}
 
 /**
  * Token Helpers
@@ -212,14 +216,94 @@ export const user = async (req, res) => {
                 email: authenticatedUser.email,
                 username: authenticatedUser.username,
                 tier: authenticatedUser.tier,
+                chatsToday: authenticatedUser.chatsToday,
+                uploadsToday: authenticatedUser.uploadsToday,
                 height: authenticatedUser.height,
                 weight: authenticatedUser.weight,
-                primarySports: authenticatedUser.primarySports
+                primarySports: authenticatedUser.primarySports,
+                hasGoogleCalendar: !!authenticatedUser.googleRefreshToken,
+                userTimezone: authenticatedUser.userTimezone
             }
         });
     } catch (error) {
         console.error("Fetch current user error:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+/**
+ * GOOGLE CALENDAR OAUTH
+ */
+import { OAuth2Client } from 'google-auth-library';
+
+export const googleCalendarAuth = async (req, res) => {
+    try {
+        const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+        const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+        const GOOGLE_REDIRECT_URI = `${BACKEND_URL}/api/auth/google/calendar/callback`;
+
+        const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+        const url = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            prompt: 'consent',
+            scope: ['https://www.googleapis.com/auth/calendar'],
+            state: req.user.email,
+            redirect_uri: GOOGLE_REDIRECT_URI
+        });
+        res.json({ url });
+    } catch (err) {
+        console.error("Generate Auth URL error:", err);
+        res.status(500).json({ message: "Failed to generate Google Auth URL" });
+    }
+};
+
+export const googleCalendarCallback = async (req, res) => {
+    try {
+        const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+        const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
+        const GOOGLE_REDIRECT_URI = `${BACKEND_URL}/api/auth/google/calendar/callback`;
+
+        const { code, state } = req.query;
+        if (!code || !state) return res.status(400).send("Authorization failed: Missing code or state.");
+
+        const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+        const { tokens } = await oauth2Client.getToken(code);
+
+        const userEmail = state;
+        const updateData = {
+            googleAccessToken: tokens.access_token,
+            googleTokenExpiry: tokens.expiry_date
+        };
+        if (tokens.refresh_token) {
+            updateData.googleRefreshToken = tokens.refresh_token;
+        }
+
+        await User.findOneAndUpdate({ email: userEmail }, updateData);
+
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${FRONTEND_URL}/chat`);
+    } catch (err) {
+        console.error("Google Calendar Callback error:", err);
+        res.status(500).send("Failed to authenticate with Google Calendar.");
+    }
+};
+
+/**
+ * UPDATE USER TIMEZONE
+ */
+export const updateTimezone = async (req, res) => {
+    try {
+        const { timezone } = req.body;
+        if (!timezone) return res.status(400).json({ message: "Timezone is required." });
+
+        const User = (await import('../model/user.js')).default;
+        await User.findByIdAndUpdate(req.user.id, { userTimezone: timezone });
+        res.status(200).json({ message: "Timezone updated successfully." });
+    } catch (err) {
+        console.error("Update Timezone error:", err);
+        res.status(500).json({ message: "Failed to update timezone." });
     }
 };
 

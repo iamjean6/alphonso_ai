@@ -223,7 +223,7 @@ export const saveOTP = async (email, code) => {
     const key = `alphonso:otp:${email}`;
     try {
         // Store code with 5-minute expiry (300 seconds)
-        await client.set(key, code, { EX: 300 });
+        await client.set(key, code, { EX: 60 });
         return true;
     } catch (error) {
         console.error(`[Redis] Error saving OTP for ${email}:`, error.message);
@@ -236,13 +236,13 @@ export const verifyOTP = async (email, code) => {
     try {
         const storedCode = await client.get(key);
         if (!storedCode) return { valid: false, reason: "EXPIRED" };
-        
+
         if (storedCode === code) {
             // Delete code immediately after successful use (Security)
             await client.del(key);
             return { valid: true };
         }
-        
+
         return { valid: false, reason: "INVALID" };
     } catch (error) {
         console.error(`[Redis] Error verifying OTP for ${email}:`, error.message);
