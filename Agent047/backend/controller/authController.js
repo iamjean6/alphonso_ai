@@ -35,7 +35,7 @@ const sendRefreshToken = (res, token) => {
         httpOnly: true,
         path: '/api/auth/refresh', // Only send to refresh endpoint
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 };
