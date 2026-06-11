@@ -2,7 +2,7 @@
 deployment:
   tasks:
     # Change "your_cpanel_username" to your actual cPanel username
-    - export DEPLOYPATH=/home/alphonso/public_html/
+    - export DEPLOYPATH=/home1/alphonso/public_html/
     
     # Copy all built frontend files into the public directory
     - /bin/cp -R Agent047/dist/* $DEPLOYPATH/
