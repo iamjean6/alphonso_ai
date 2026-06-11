@@ -32,7 +32,11 @@ logger = logging.getLogger(__name__)
 # surface an error at call time rather than at startup.
 _code_executor = None
 try:
+    project = os.getenv("GOOGLE_CLOUD_PROJECT")
+    location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
     _code_executor = VertexAiCodeExecutor(
+        project=project,
+        location=location,
         optimize_data_file=True,
         stateful=True,
     )
