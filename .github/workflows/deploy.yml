@@ -1,0 +1,42 @@
+name: Deploy Frontend to cPanel
+
+on:
+  push:
+    branches:
+      - main # Change this if your main branch is named 'master'
+
+jobs:
+  web-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Use your local node version
+
+    - name: Install dependencies
+      working-directory: ./Agent047
+      run: npm install
+
+    - name: Build project
+      working-directory: ./Agent047
+      # This makes the GitHub Secrets available as env vars during the build
+      env:
+        VITE_PAYPAL_CLIENTID: ${{ secrets.VITE_PAYPAL_CLIENTID }}
+        VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+      run: npm run build
+
+    - name: Sync files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        # We only want to upload the built files, not the source code
+        local-dir: ./Agent047/dist/
+        # This is typically public_html on cPanel, or the folder your domain points to
+        server-dir: /public_html/
