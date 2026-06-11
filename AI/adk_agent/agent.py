@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import time
+import tempfile
 
 # Robust .env loading - MUST happen before any local imports that depend on config
 env_path = os.path.join(os.path.dirname(__file__), ".env")
@@ -8,6 +9,28 @@ if os.path.exists(env_path):
     load_dotenv(env_path)
 else:
     load_dotenv()
+
+# Bootstrap Google Cloud credentials from environment variable.
+# On Railway (and other cloud platforms) there is no local JSON key file, so the
+# full service-account JSON is stored in GOOGLE_APPLICATION_CREDENTIALS_JSON.
+# We write it to a temporary file and point GOOGLE_APPLICATION_CREDENTIALS at it
+# so that GcsArtifactService and every other google-cloud-* library picks it up.
+_gac_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if _gac_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    try:
+        _creds_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        )
+        _creds_file.write(_gac_json)
+        _creds_file.flush()
+        _creds_file.close()
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _creds_file.name
+    except Exception as _e:
+        import sys
+        print(
+            f"WARNING: Failed to write GOOGLE_APPLICATION_CREDENTIALS_JSON to temp file: {_e}",
+            file=sys.stderr,
+        )
 
 from google.adk.apps import App
 from google.adk.agents.sequential_agent import SequentialAgent
