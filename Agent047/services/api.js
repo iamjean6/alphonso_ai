@@ -116,7 +116,8 @@ export const login = async (credentials) => {
 };
 
 export const refreshAccessToken = async () => {
-    const response = await api.post(`/api/auth/refresh`);
+    // Bypass the 'api' interceptor to prevent infinite 401 loops
+    const response = await axios.post(`${BASE_URL}/api/auth/refresh`, {}, { withCredentials: true });
     return response.data; // { token: '...' }
 };
 
