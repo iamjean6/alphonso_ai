@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from typing import Optional
 import json
 import uuid
+import tempfile
 
 from fastapi import FastAPI, Depends, HTTPException, Security, Body, Header, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
@@ -16,6 +17,28 @@ from google.cloud import storage
 # Initialize Logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+# Bootstrap Google Cloud credentials from environment variable.
+# On Railway (and other cloud platforms) there is no local JSON key file, so the
+# full service-account JSON is stored in GOOGLE_APPLICATION_CREDENTIALS_JSON.
+# We write it to a temporary file and point GOOGLE_APPLICATION_CREDENTIALS at it
+# so that every google-cloud-* library picks it up automatically.
+_gac_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if _gac_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    try:
+        _creds_file = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        )
+        _creds_file.write(_gac_json)
+        _creds_file.flush()
+        _creds_file.close()
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _creds_file.name
+        logger.info(
+            f"Credentials: GOOGLE_APPLICATION_CREDENTIALS set from "
+            f"GOOGLE_APPLICATION_CREDENTIALS_JSON env var → {_creds_file.name}"
+        )
+    except Exception as _e:
+        logger.error(f"Credentials: Failed to write credentials temp file: {_e}")
 
 def configure_bucket_cors():
     """

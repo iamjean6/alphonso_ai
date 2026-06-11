@@ -20,8 +20,6 @@ socket.setdefaulttimeout(15)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-youtube = build('youtube', 'v3', developerKey=os.getenv('YOUTUBE_API_KEY'))
-
 
 
 def search_youtube(query: str):
@@ -29,8 +27,14 @@ def search_youtube(query: str):
     Finds top sports videos with persistent caching and randomized sampling.
     """
     query = query.strip().lower()
-    
 
+    # Initialize the YouTube client lazily so the service can start without
+    # YOUTUBE_API_KEY present; it will only fail when this tool is actually called.
+    api_key = os.getenv('YOUTUBE_API_KEY')
+    if not api_key:
+        logger.error("YouTube Tool: YOUTUBE_API_KEY is not set.")
+        return "ERROR: YOUTUBE_API_KEY not configured"
+    youtube = build('youtube', 'v3', developerKey=api_key)
 
     logger.info(f"YouTube Tool: Fetching fresh data for '{query}'")
     
