@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import cron from 'node-cron';
+import rateLimit from 'express-rate-limit';
 
 // Middlewares
 import authMiddleware from './middleware/auth.js';
@@ -13,7 +15,7 @@ import checkUsage from './middleware/usage.js';
 import { chatWithAi, getUploadUrl, cancelChat } from './controller/aiController.js';
 import { updateProfile } from './controller/profiles.js';
 import { listSessions, deleteSession, getSessionMessages, toggleStarSession } from './controller/sessionController.js';
-import { mpesaCallback, paystackWebhook } from './controller/paymentController.js';
+import { mpesaCallback, paystackWebhook, paypalWebhook } from './controller/paymentController.js';
 import { login, register, user, refresh, logout, checkUsername, requestOTP, googleCalendarAuth, googleCalendarCallback, updateTimezone } from './controller/authController.js';
 import { bootstrapCache } from './cache/bootstrap.js';
 import { connectKafka } from './services/kafkaClient.js';
@@ -64,6 +66,18 @@ mongoose.connect(process.env.MONGO_URI)
         await bootstrapCache();
         // Initialize Kafka Producer and Response Consumer
         await connectKafka();
+
+        // Start Daily Reset Cron Job (Midnight Every Day)
+        cron.schedule('0 0 * * *', async () => {
+            try {
+                console.log("[CRON] Running daily usage reset at midnight...");
+                const User = mongoose.model('User');
+                await User.updateMany({}, { chatsToday: 0, uploadsToday: 0, lastUsageReset: new Date() });
+                console.log("[CRON] Daily usage reset complete.");
+            } catch (err) {
+                console.error("[CRON] Failed to reset usage counters:", err);
+            }
+        });
     })
     .catch((err) => console.log("MongoDB connection error: ", err));
 
@@ -79,10 +93,18 @@ app.post("/chat/cancel", authMiddleware, cancelChat);
 app.post("/get-upload-url", authMiddleware, checkUsage, getUploadUrl);
 
 // AUTH ROUTES (Public / Protected)
-app.post("/api/auth/request-otp", requestOTP);
-app.post("/api/auth/signup", register);
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 requests per window
+    message: { message: "Too many authentication attempts from this IP, please try again after 15 minutes." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.post("/api/auth/request-otp", authLimiter, requestOTP);
+app.post("/api/auth/signup", authLimiter, register);
 app.get("/api/auth/check-username", checkUsername);
-app.post("/api/auth/login", login);
+app.post("/api/auth/login", authLimiter, login);
 app.post("/api/auth/refresh", refresh);
 app.post("/api/auth/logout", logout);
 app.get("/api/auth/user", authMiddleware, user);
@@ -102,6 +124,7 @@ app.patch("/sessions/:id/star", authMiddleware, toggleStarSession);
 // PAYMENT CALLBACKS (Public)
 app.post("/api/payments/mpesa-callback", mpesaCallback);
 app.post("/api/payments/paystack-webhook", paystackWebhook);
+app.post("/api/payments/paypal-webhook", paypalWebhook);
 app.use("/api/paypal", paypalRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

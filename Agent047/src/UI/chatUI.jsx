@@ -29,7 +29,7 @@ import {
     Square
 } from 'lucide-react';
 
-const ChatUI = ({ userData, onLogout }) => {
+const ChatUI = ({ userData, onLogout, setUserData }) => {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const [activeMode, setActiveMode] = useState('research'); // 'research' vs 'workout'
@@ -376,8 +376,13 @@ const ChatUI = ({ userData, onLogout }) => {
             isSendingRef.current = false;
             setUploadProgress(0); // Reset for next turn
             setRefreshSidebarToggle(prev => !prev);
+            
+            // Increment local chatsToday so UI limits update instantly
+            if (setUserData) {
+                setUserData(prev => ({ ...prev, chatsToday: (prev.chatsToday || 0) + 1 }));
+            }
         }
-    }, [sessionId, pendingFile, isStreaming, activeMode]);
+    }, [sessionId, pendingFile, isStreaming, activeMode, setUserData]);
 
     const triggerWorkflowAction = async (actionMsg, targetFlow = null) => {
         if (isStreaming || isSendingRef.current) return;

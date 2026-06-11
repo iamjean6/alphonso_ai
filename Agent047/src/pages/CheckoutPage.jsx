@@ -186,33 +186,33 @@ const CheckoutPage = ({ userData, setUserData }) => {
                     </h3>
 
                     <div className="space-y-4 mb-10">
-                        {/* MPESA STK - Only show for KES */}
-                        <div
-                            onClick={() => isKES && setMethod('mpesa')}
-                            className={`p-6 rounded-3xl border-2 transition-all cursor-pointer relative overflow-hidden
-                                ${!isKES ? 'opacity-40 cursor-not-allowed border-border grayscale' : (method === 'mpesa' ? 'border-green-500 bg-green-500/5' : 'border-border hover:border-green-500/40')}
-                            `}
-                        >
-                            <div className="flex justify-between items-center">
+                        {/* MPESA STK - LOCKED */}
+                        <div className="relative p-6 rounded-3xl border-2 border-border opacity-50 bg-muted/50 cursor-not-allowed overflow-hidden">
+                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/40 backdrop-blur-[2px]">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-background border border-border rounded-full shadow-lg">
+                                    <Lock className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Coming Soon</span>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center opacity-40">
                                 <div className="flex items-center gap-3">
                                     <Smartphone className="w-6 h-6 text-green-500" />
                                     <div className="flex flex-col">
                                         <span className="font-bold text-lg">M-PESA STK Push</span>
-                                        {!isKES && <span className="text-[10px] uppercase font-black tracking-widest text-red-500">Only available for KES</span>}
                                     </div>
                                 </div>
-                                {method === 'mpesa' && <CheckCircle2 className="text-green-500" />}
                             </div>
                         </div>
 
-                        {/* PAYSTACK (CARD/BANK) */}
-                        <div
-                            onClick={() => setMethod('paystack')}
-                            className={`p-6 rounded-3xl border-2 transition-all cursor-pointer
-                                ${method === 'paystack' ? 'border-blue-500 bg-blue-500/5' : 'border-border hover:border-blue-500/40'}
-                            `}
-                        >
-                            <div className="flex justify-between items-center">
+                        {/* PAYSTACK (CARD/BANK) - LOCKED */}
+                        <div className="relative p-6 rounded-3xl border-2 border-border opacity-50 bg-muted/50 cursor-not-allowed overflow-hidden">
+                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/40 backdrop-blur-[2px]">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-background border border-border rounded-full shadow-lg">
+                                    <Lock className="w-3 h-3 text-muted-foreground" />
+                                    <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Coming Soon</span>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center opacity-40">
                                 <div className="flex items-center gap-3">
                                     <CreditCard className="w-6 h-6 text-blue-500" />
                                     <div className="flex flex-col">
@@ -220,7 +220,6 @@ const CheckoutPage = ({ userData, setUserData }) => {
                                         <span className="text-[10px] uppercase font-bold text-muted-foreground">Powered by Paystack</span>
                                     </div>
                                 </div>
-                                {method === 'paystack' && <CheckCircle2 className="text-blue-500" />}
                             </div>
                         </div>
 

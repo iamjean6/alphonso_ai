@@ -39,13 +39,17 @@ function App() {
         const { user } = await getUserDetails();
 
         // Always hydrate local state from DB on mount/reload
-        setUserData({
+        setUserData(prev => ({
+          ...prev,
           username: user.username,
           height: user.height,
           weight: user.weight,
           sports: user.primarySports,
-          tier: user.tier || (user.isPro ? 'elite' : 'rookie')
-        });
+          tier: user.tier || (user.isPro ? 'elite' : 'rookie'),
+          chatsToday: user.chatsToday || 0,
+          hasGoogleCalendar: user.hasGoogleCalendar,
+          userTimezone: user.userTimezone
+        }));
 
         // SMART SKIP: Only redirect to chat if user is fully onboarded AND currently at the root
         if (user.primarySports && user.primarySports.length > 0 && user.height && location.pathname === '/') {
@@ -119,12 +123,16 @@ function App() {
       }
     } else if (hasExistingProfile) {
       // Pull existing profile into local state for visibility
-      setUserData({
+      setUserData(prev => ({
+        ...prev,
         username: authenticatedUser.username,
         height: authenticatedUser.height,
         weight: authenticatedUser.weight,
-        sports: authenticatedUser.primarySports
-      });
+        sports: authenticatedUser.primarySports,
+        chatsToday: authenticatedUser.chatsToday || 0,
+        hasGoogleCalendar: authenticatedUser.hasGoogleCalendar,
+        userTimezone: authenticatedUser.userTimezone
+      }));
       console.log("Welcome back! Existing profile loaded.");
     }
 
@@ -167,7 +175,7 @@ function App() {
         />
         <Route
           path="/chat"
-          element={<ChatUI userData={userData} onLogout={handleLogout} />}
+          element={<ChatUI userData={userData} onLogout={handleLogout} setUserData={setUserData} />}
         />
         <Route
           path="/pricing"

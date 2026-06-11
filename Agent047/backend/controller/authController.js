@@ -103,7 +103,8 @@ export const register = async (req, res) => {
                 tier: newUser.tier,
                 height: newUser.height,
                 weight: newUser.weight,
-                primarySports: newUser.primarySports
+                primarySports: newUser.primarySports,
+                chatsToday: newUser.chatsToday || 0
             }
         });
 
@@ -154,7 +155,8 @@ export const login = async (req, res) => {
                 tier: user.tier,
                 height: user.height,
                 weight: user.weight,
-                primarySports: user.primarySports
+                primarySports: user.primarySports,
+                chatsToday: user.chatsToday || 0
             }
         });
 

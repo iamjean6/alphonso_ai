@@ -4,8 +4,9 @@ import client from "../cache/index.js"
 import User from "../model/user.js"
 import Transaction from "../model/transaction.js"
 import authMiddleware from "../middleware/auth.js"
+import { grantProStatus } from "../controller/paymentController.js"
 
-const paypalClient = got.extend({
+export const paypalClient = got.extend({
     prefixUrl: process.env.PAYPAL_BASEURL,
     retry: {
         limit: 3,
@@ -18,7 +19,7 @@ const paypalClient = got.extend({
 
 const router = express.Router()
 
-const getAccessToken = async () => {
+export const getAccessToken = async () => {
     try {
         // 1. Try to check Redis Cache first (wrapped in try/catch to be resilient)
         let cachedToken = null;
@@ -176,29 +177,14 @@ const capturePayment = async (req, res) => {
         if (orderData.status === "COMPLETED") {
             const planTier = orderData.purchase_units[0].payments.captures[0].custom_id || "elite";
             
-            // 1. Atomically Update User and Transaction
+            // 1. Atomically Update User and Transaction via Unified Webhook Logic
             const userEmail = req.user.email;
-            const proUntilDate = new Date();
-            proUntilDate.setDate(proUntilDate.getDate() + 30);
+            await grantProStatus(userEmail, orderData.purchase_units[0].amount.value, 'paypal', orderId, planTier);
+            
+            // Retrieve updated user to send back to UI
+            const updatedUser = await User.findOne({ email: userEmail });
 
-            const [updatedUser] = await Promise.all([
-                User.findOneAndUpdate(
-                    { email: userEmail },
-                    { 
-                        tier: planTier, 
-                        isPro: true,
-                        proUntil: proUntilDate,
-                        $push: { paymentHistory: orderId } 
-                    },
-                    { new: true }
-                ),
-                Transaction.findOneAndUpdate(
-                    { providerOrderId: orderId },
-                    { status: 'completed' }
-                )
-            ]);
-
-            console.log(`✅ Athlete ${userEmail} upgraded to ${planTier} tier via Transaction Registry.`);
+            console.log(`✅ Athlete ${userEmail} upgraded to ${planTier} tier via synchronous capture.`);
 
             return res.status(200).json({ 
                 message: "Payment captured successfully", 
